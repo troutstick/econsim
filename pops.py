@@ -19,6 +19,9 @@ class Pop:
         self.buy_success = buy_success
         self.sell_success = sell_success
 
+        # need to code in the margin around which the pop would agree to a transaction
+        #essentially amounts to a min and a max for bid_price
+
     def produce(self):
         """The pop produces/consumes material."""
         def produce_rocket():
@@ -44,7 +47,7 @@ class Pop:
 
         Some vars unimplemented."""
         resource_name = resource.name
-        curr_amount = self.inventory.get(resource_name).amount
+        curr_amount = resource.amount
         ideal_amount = self.needs.get(resource_name)
         expected_price = self.goods_prices.get(resource_name)
         if ideal_amount > curr_amount:
