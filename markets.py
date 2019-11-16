@@ -1,4 +1,5 @@
 import pops
+import goods
 
 class Marketplace:
     """Where money is exchanged for goods and services.
@@ -9,7 +10,8 @@ class Marketplace:
         """Agents are actors that act in the economy. Can be pops or whole nations."""
         self.name = name
         self.agents = agents
-        self.clearing_price_list = {pops.Rocket.name: 4, pops.Food.name: 10} # each resource's clearing price at this market
+        self.clearing_price_list = {} # each resource's clearing price at this market
+
         self.agents_config()
         self.allowed_resources_config() # creates list of all resources that can be traded here
         self.market_reset() # prepare for new trading round
@@ -20,7 +22,9 @@ class Marketplace:
             agent.marketplace = self
 
     def allowed_resources_config(self):
-        self.allowed_resources = [pops.Rocket.name, pops.Food.name]
+        self.allowed_resources = [r.name for r in goods.implemented]
+        for resource in goods.implemented:
+            self.clearing_price_list[resource.name] = 4 # each resource's clearing price at this market
 
     #########################
     # Interfaces to interact with marketplace

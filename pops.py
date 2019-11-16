@@ -1,5 +1,6 @@
 import markets
 import random
+import goods
 
 class Pop:
     """Class representing all people.
@@ -24,13 +25,15 @@ class Pop:
 
     def config_pop(self):
         """Default setup. WIP."""
-        self.inventory = {Rocket.name: Rocket(0), Food.name: Food(0)}
+        self.inventory = {}
+        for resource in goods.implemented:
+            self.inventory[resource.name] = resource(0)
 
     def config_mental_state(self):
         """Function that sets up the Pop's attitudes towards things.
         Essentially part of the pop's mental state and should not be accessed by others.
         """
-        names = [Rocket.name, Food.name]
+        names = [resource.name for resource in goods.implemented]
 
         self.desires = {}
         self.goods_prices = {} # expected prices for every resource according to the pop
@@ -53,7 +56,7 @@ class Pop:
         print(f"job: {self.job}")
         print(f"money: {self.money}")
         print(f"marketplace: {self.marketplace}")
-        print(f"inventory: {self.get_inventory_amount(Rocket.name)} rockets")
+        print(f"inventory: {self.inventory}")
         print(f"desires: {self.desires}")
         print(f"goods_prices: {self.goods_prices}")
         print(f"buy_success: {self.buy_success}")
@@ -229,12 +232,12 @@ class Rocket_eater(Pop):
 
 def produce_rocket(agent):
     """An example function. Add one to rocket amount."""
-    agent.add_to_inventory(Rocket.name, 1)
+    agent.add_to_inventory(goods.Rocket.name, 1)
 
 def eat_rocket(agent):
     """An example function."""
-    while agent.get_inventory_amount(Rocket.name) > 1:
-        agent.add_to_inventory(Rocket.name, -1)
+    while agent.get_inventory_amount(goods.Rocket.name) > 1:
+        agent.add_to_inventory(goods.Rocket.name, -1)
         salary = random.uniform(1, 10)
         #self.add_cash(salary)
         make_food(agent, 1)
@@ -244,25 +247,4 @@ def eat_rocket(agent):
 
 def make_food(agent, amount=-1):
     """Eat food"""
-    agent.add_to_inventory(Food.name, amount)
-
-
-    #########################
-    # Resources
-    #########################
-
-class Resource:
-    """Class that represents all the commodities handled by the agents."""
-    def __init__(self, amount):
-        self.amount = amount
-
-class Rocket(Resource):
-    """An example resource."""
-    name = 'Rocket'
-    def __init__(self, amount):
-        Resource.__init__(self, amount)
-
-class Food(Resource):
-    name = 'Food'
-    def __init__(self, amount):
-        Resource.__init__(self, amount)
+    agent.add_to_inventory(goods.Food.name, amount)

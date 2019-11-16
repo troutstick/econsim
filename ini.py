@@ -5,6 +5,7 @@
 import gamelogic
 import markets
 import pops
+import goods
 
 maker = pops.Rocketeer
 eater = pops.Rocket_eater
