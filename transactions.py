@@ -3,11 +3,11 @@ import marketplace
 
 class Transaction:
     """Representation of offers for buying/selling resources."""
-    def __init__(self, bidder, resource, bid_price, transaction_amount):
+    def __init__(self, bidder, resource, bid_price, amount):
         self.bidder = bidder
         self.resource = resource
         self.bid_price = bid_price
-        self.transaction_amount = transaction_amount
+        self.amount = amount
 
 
 class Buy(Transaction):
@@ -15,8 +15,34 @@ class Buy(Transaction):
         Transaction.__init__(self, bidder, resource, bid_price, buy_amount)
 
 class Sell(Transaction):
-    def __init__(self, bidder, resource, bid_price, buy_amount):
-        Transaction.__init__(self, bidder, resource, bid_price, buy_amount)
+    def __init__(self, bidder, resource, bid_price, sell_amount):
+        Transaction.__init__(self, bidder, resource, bid_price, sell_amount)
 
 def perform_transaction(buy, sell):
-    """A buy and a sell are compared; a transaction is performed if they are agreeable"""
+    """A buy and a sell are compared; a transaction is performed if they are agreeable.
+    The transaction price is based on the BID_PRICE of the Sell instance.
+    """
+    def transaction_success():
+        """A helper function that returns True/False depending on whether or not
+        the parties agree to the transaction.
+
+        WIP
+
+        Works by comparing info contained in BUY and SELL.
+        """
+        return True
+
+    if transaction_success():
+        resource_amount = min(buy.amount, sell.amount)
+        resource = buy.resource
+        total_price = resource_amount * sell.bid_price
+        buyer = buy.bidder
+        seller = sell.bidder
+        buyer.add_to_inventory(resource, resource_amount)
+        buyer.add_cash(-total_price)
+        seller.add_to_inventory(resource, -resource_amount)
+        seller.add_cash(total_price)
+        # use buy.bidder.add_to_inventory
+
+    else:
+        raise NoTransactionException('Buyer and seller unable to agree to a deal.')
