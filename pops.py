@@ -1,42 +1,55 @@
-import random
-import marketplace
-import transactions
+import markets
 
 class Pop:
     """Class representing all people.
     Maybe somehow implement a way to limit a Pop's number of actions per tick;
     this could be used to represent privilege or productivity.
     """
-    def __init__(self, marketplace, desires, money, inventory, goods_prices):
+    def __init__(self, money=0):
         """DESIRES is a dictionary: pairing up a resource with the Pop's ideal amount.
         INVENTORY is a dict containing RESOURCE objects
         GOODS_PRICES is also a dict; adjusted with every transaction"""
         #self.size = size
         #self.ethnicity = ethnicity
         #self.religion = religion
-        self.marketplace = marketplace
         self.money = money
-        self.inventory = inventory
-        self.config_mental_state(desires, goods_prices, buy_success, sell_success)
+        self.marketplace = None
+        self.inventory = {}
+        self.config_pop()
+        self.config_mental_state()
 
-    def config_mental_state(self, desires, goods_prices, buy_success, sell_success):
-        """Function that sets up the Pop's attitudes towards things."""
+    def config_pop(self):
+        """Default setup. WIP."""
+        self.inventory = {Rocket.name: Rocket(0)}
 
-        # the following are essentially part of the pop's mental state and should not be accessed by others
-        self.desires = desires
-        self.goods_prices = goods_prices    # expected prices for every resource according to the pop
-        self.buy_success = buy_success      # history of buys; used to determine expected prices
-        self.sell_success = sell_success
+    def config_mental_state(self):
+        """Function that sets up the Pop's attitudes towards things.
+        Essentially part of the pop's mental state and should not be accessed by others.
+        """
+        name = Rocket.name
+        self.desires = {name: 10}
+        self.goods_prices = {name: 1} # expected prices for every resource according to the pop
+        self.buy_success = {name: 0} # history of buys; used to determine expected prices
+        self.sell_success = {name: 0}
 
     #########################
     # Interfaces to interact with pop
     #########################
 
-    def add_to_inventory(self, outside_resource, amount):
+    def report(self):
+        """Print various things."""
+        print(f"money: {self.money}")
+        print(f"marketplace: {self.marketplace}")
+        print(f"inventory: {self.get_inventory_amount(Rocket.name)} rockets")
+        print(f"desires: {self.desires}")
+        print(f"goods_prices: {self.goods_prices}")
+        print(f"buy_success: {self.buy_success}")
+        print(f"sell_success: {self.sell_success}")
+
+    def add_to_inventory(self, resource_name, amount):
         """A function that adds/subtracts an AMOUNT of RESOURCE from the inventory."""
-        resource_name = outside_resource.name
-        inv_resource = self.inventory.get(resource_name)
-        inv_resource += amount
+        resource = self.inventory.get(resource_name)
+        resource.amount += amount
 
     def add_cash(self, amount):
         """The Pop is given AMOUNT of cash."""
@@ -69,7 +82,7 @@ class Pop:
         """The pop produces/consumes material."""
         def produce_rocket():
             """An example function. Add one to rocket amount."""
-            self.add_to_inventory(Rocket, 1)
+            self.add_to_inventory(Rocket.name, 1)
 
         produce_rocket()
 
@@ -164,11 +177,11 @@ class Pop:
 
 class Resource:
     """Class that represents all the commodities handled by the agents."""
-    def __init__(self, name, amount):
-        self.name = name
+    def __init__(self, amount):
         self.amount = amount
 
 class Rocket(Resource):
     """An example resource."""
+    name = 'Rocket'
     def __init__(self, amount):
-        Resource.__init__(self, 'Rocket', amount)
+        Resource.__init__(self, amount)

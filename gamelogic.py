@@ -1,6 +1,5 @@
 import pops
-import transactions
-import marketplace
+import markets
 
 class World:
     """The world in which the simulation takes place."""
