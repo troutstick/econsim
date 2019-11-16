@@ -3,10 +3,10 @@ import markets
 
 class World:
     """The world in which the simulation takes place."""
-    def __init__(self):
+    def __init__(self, agents=[], marketplaces = [], ):
         self.time = 0
-        self.agents = []
-        self.marketplaces = []
+        self.agents = agents
+        self.marketplaces = marketplaces
         self.config_agents()
         self.config_marketplaces()
 
@@ -18,9 +18,9 @@ class World:
         """Set up the marketplaces."""
         pass
 
-    def simulate(self, time):
+    def simulate(self, time=1):
         """Run the simulation forward one timestep."""
-        while self.time < time:
+        for _ in list(range(time)):
             for marketplace in self.marketplaces:
-                marketplace.simulate_market()
+                marketplace.simulate()
             self.time += 1

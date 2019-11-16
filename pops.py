@@ -62,6 +62,8 @@ class Pop:
         """Function for an agent to exchange cash for resource."""
         self.add_to_inventory(resource_name, resource_amount)
         self.add_cash(cash_amount)
+        self.goods_prices[resource_name] *= random.uniform(1.0, 1.25)
+
 
     def get_inventory(self, resource_name):
         """Looks up RESOURCE_NAME in inventory, and returns resource instance if successful."""
@@ -108,10 +110,8 @@ class Pop:
         expected_price = self.get_expected_price(resource_name)
         if ideal_amount > curr_amount:
             bid = self.create_buy(resource_name, expected_price)
-            print(f'{self.name} buy')
         elif ideal_amount < curr_amount:
             bid = self.create_sell(resource_name, expected_price)
-            print(f'{self.name} sell')
         else:
             bid = None
         return bid
@@ -120,7 +120,11 @@ class Pop:
         """Returns an offer to buy a good at the marketplace.
         Pop will buy goods that cost at most BID_PRICE, but will happily buy at lower price.
         """
-        buy_amount = self.amount_to_buy(resource_name)
+        desired_buy_amount = self.amount_to_buy(resource_name)
+        max_buy_amount = self.money / bid_price
+        if max_buy_amount < 1:
+            return
+        buy_amount = min(desired_buy_amount, max_buy_amount)
         return markets.Buy(self, resource_name, bid_price, buy_amount)
 
         # find a way to negotiate a final price from these two
@@ -167,6 +171,13 @@ class Pop:
         diff = clearing_price - expected_price
         self.goods_prices[resource_name] += (diff * random.random())
 
+    def failed_buy(self, resource_name):
+        """The pop adjusts expectations when faced with a failed transaction."""
+        self.goods_prices[resource_name] *= random.uniform(1.0, 1.1)
+
+    def failed_sell(self, resource_name):
+        """The pop adjusts expectations when faced with a failed transaction."""
+        self.goods_prices[resource_name] *= random.uniform(0.9, 1.0)
 
         #class Lower_Class(Pop):
         """Represents people in the lower echelons of society."""
@@ -187,7 +198,6 @@ class Rocketeer(Pop):
         def produce_rocket():
             """An example function. Add one to rocket amount."""
             self.add_to_inventory(Rocket.name, 1)
-            print(f'{self.name} produces a rocket!')
 
         produce_rocket()
 
@@ -198,8 +208,13 @@ class Rocket_eater(Pop):
         """The pop produces/consumes material."""
         def eat_rocket():
             """An example function. Add one to rocket amount."""
-            self.add_to_inventory(Rocket.name, -1)
-            print(f'{self.name} eats a rocket!')
+            if self.get_inventory_amount(Rocket.name) > 1:
+                self.add_to_inventory(Rocket.name, -1)
+                salary = random.uniform(1, 10)
+                self.add_cash(salary)
+                print(f'{self.name} made ${salary} from eating a rocket')
+            else:
+                self.add_cash(1)
 
         eat_rocket()
 

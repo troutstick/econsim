@@ -63,16 +63,11 @@ class Marketplace:
     def resolve_for_resource(self, resource_name):
         """Resolves outstanding transactions of a specific resource type."""
 
-        def transaction_key(transaction):
-            print(f'bid price {transaction.bid_price}')
-            return transaction.bid_price
+        transaction_key = lambda bid: bid.bid_price
 
         resource_buy_list = [buy for buy in self.buy_list if buy.resource_name == resource_name]
         self.boy = resource_buy_list
         resource_sell_list = [sell for sell in self.sell_list if sell.resource_name == resource_name]
-        print(resource_buy_list)
-        print('and')
-        print(resource_sell_list)
         resource_buy_list.sort(key=transaction_key, reverse=True) # buys are sorted in descending order
         resource_sell_list.sort(key=transaction_key)
         print(resource_buy_list)
@@ -81,8 +76,12 @@ class Marketplace:
 
         try:
             while resource_buy_list and resource_sell_list:
-                print('yay it got here')
                 perform_transaction(self, resource_buy_list.pop(0), resource_buy_list.pop(0))
+            for buy in resource_buy_list:
+                buy.bidder.failed_buy(resource_name)
+            for sell in resource_sell_list:
+                sell.bidder.failed_sell(resource_name)
+
             return
         except NoTransactionException:
             return
@@ -167,7 +166,8 @@ def perform_transaction(marketplace, buy, sell):
         seller.exchange(resource_name, -resource_amount, total_price)
         marketplace.exchange(resource_name, resource_amount, total_price)
     else:
-        raise NoTransactionException('Buyer and seller unable to agree to a deal.')
+        print(f'{buyer.name} and {seller.name} unable to agree to a deal.')
+        raise NoTransactionException('no transaction')
 
         #class Lower_Class(Pop):
         """Represents people in the lower echelons of society."""
