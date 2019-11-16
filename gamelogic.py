@@ -9,18 +9,19 @@ class World:
         self.agents = []
         self.marketplaces = []
         self.config_agents()
-        self.config_marketplace()
+        self.config_marketplaces()
 
     def config_agents(self):
         """Set up the agents."""
         pass
 
-    def config_marketplace(self):
+    def config_marketplaces(self):
         """Set up the marketplaces."""
         pass
 
-    def simulate(self):
+    def simulate(self, time):
         """Run the simulation forward one timestep."""
-        for marketplace in self.marketplaces:
-            marketplace.simulate_market()
-        self.time += 1
+        while self.time < time:
+            for marketplace in self.marketplaces:
+                marketplace.simulate_market()
+            self.time += 1

@@ -18,30 +18,24 @@ class Sell(Transaction):
     def __init__(self, bidder, resource_name, bid_price, sell_amount):
         Transaction.__init__(self, bidder, resource_name, bid_price, sell_amount)
 
-def perform_transaction(buy, sell):
+
+
+def perform_transaction(marketplace, buy, sell):
     """A buy and a sell are compared; a transaction is performed if they are agreeable.
-    The transaction price is based on the BID_PRICE of the Sell instance.
+    The CLEARING_PRICE is based on the mean of the BID_PRICE of both the Buy and the Sell.
+
+    Reports how much of resource and money was exchanged.
     """
-    def transaction_success():
-        """A helper function that returns True/False depending on whether or not
-        the parties agree to the transaction.
-
-        WIP
-
-        Works by comparing info contained in BUY and SELL.
-        """
-        return True
-
-    if transaction_success():
+    if buy.bid_price >= sell.bid_price:
         resource_amount = min(buy.amount, sell.amount)
         resource_name = buy.resource_name
-        total_price = resource_amount * sell.bid_price
+        clearing_price = (buy.bid_price + sell.bid_price) / 2
+        total_price = resource_amount * clearing_price
         buyer = buy.bidder
         seller = sell.bidder
-        buyer.add_to_inventory(resource_name, resource_amount)
-        buyer.add_cash(-total_price)
-        seller.add_to_inventory(resource_name, -resource_amount)
-        seller.add_cash(total_price)
 
+        buyer.exchange(resource_name, resource_amount, -total_price)
+        seller.exchange(resource_name, -resource_amount, total_price)
+        marketplace.exchange(resource_name, resource_amount, total_price)
     else:
         raise NoTransactionException('Buyer and seller unable to agree to a deal.')

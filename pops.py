@@ -28,8 +28,9 @@ class Pop:
         self.buy_success = buy_success      # history of buys; used to determine expected prices
         self.sell_success = sell_success
 
-        # need to code in the margin around which the pop would agree to a transaction
-        #essentially amounts to a min and a max for bid_price
+    #########################
+    # Interfaces to interact with pop
+    #########################
 
     def add_to_inventory(self, outside_resource, amount):
         """A function that adds/subtracts an AMOUNT of RESOURCE from the inventory."""
@@ -40,6 +41,11 @@ class Pop:
     def add_cash(self, amount):
         """The Pop is given AMOUNT of cash."""
         self.money += amount
+
+    def exchange(self, resource_name, resource_amount, cash_amount):
+        """Function for an agent to exchange cash for resource."""
+        self.add_to_inventory(resource_name, resource_amount)
+        self.add_cash(cash_amount)
 
     def get_inventory(self, resource_name):
         """Looks up RESOURCE_NAME in inventory, and returns resource instance if successful."""
@@ -56,6 +62,8 @@ class Pop:
     def get_desired_amount(self, resource_name):
         """Looks up the pop's desired amount of RESOURCE."""
         return self.desires.get(resource_name)
+
+    ###################################################
 
     def produce(self):
         """The pop produces/consumes material."""
@@ -94,19 +102,23 @@ class Pop:
             bid = None
         return bid
 
-    def create_buy(self, resource, bid_price):
-        """Returns an offer to buy a good at the marketplace"""
-        buy_amount = amount_to_buy(self, resource)
-        return Buy(self, resource, bid_price, buy_amount)
+    def create_buy(self, resource_name, bid_price):
+        """Returns an offer to buy a good at the marketplace.
+        Pop will buy goods that cost at most BID_PRICE, but will happily buy at lower price.
+        """
+        buy_amount = amount_to_buy(self, resource_name)
+        return Buy(self, resource_name, bid_price, buy_amount)
 
         # find a way to negotiate a final price from these two
         # maybe it's the bid price of the Sell instance?
         # this makes sense
 
-    def create_sell(self, resource, bid_price):
-        """Returns an offer to sell a good at the marketplace"""
-        sell_amount = amount_to_sell(self, resource)
-        return Sell(self, resource, bid_price, sell_amount)
+    def create_sell(self, resource_name, bid_price):
+        """Returns an offer to sell a good at the marketplace.
+        Pop will sell goods for at least BID_PRICE, but will happily sell at higher price.
+        """
+        sell_amount = amount_to_sell(self, resource_name)
+        return Sell(self, resource_name, bid_price, sell_amount)
 
 #amount_to_buy and amount_to_buy reference unimplemented variables
 
