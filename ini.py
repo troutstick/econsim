@@ -23,3 +23,5 @@ print(f"rocket clearing price: {market.get_clearing_price('Rocket')}")
 market.simulate()
 earth = gamelogic.World([agents], [market])
 earth.simulate(10)
+s = earth.simulate
+r = market.report_all

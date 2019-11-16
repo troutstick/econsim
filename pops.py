@@ -6,6 +6,8 @@ class Pop:
     Maybe somehow implement a way to limit a Pop's number of actions per tick;
     this could be used to represent privilege or productivity.
     """
+    job = 'N/A'
+
     def __init__(self, name='Bob', money=0):
         """DESIRES is a dictionary: pairing up a resource with the Pop's ideal amount.
         INVENTORY is a dict containing RESOURCE objects
@@ -22,17 +24,24 @@ class Pop:
 
     def config_pop(self):
         """Default setup. WIP."""
-        self.inventory = {Rocket.name: Rocket(0)}
+        self.inventory = {Rocket.name: Rocket(0), Food.name: Food(0)}
 
     def config_mental_state(self):
         """Function that sets up the Pop's attitudes towards things.
         Essentially part of the pop's mental state and should not be accessed by others.
         """
-        name = Rocket.name
-        self.desires = {name: 10}
-        self.goods_prices = {name: 1} # expected prices for every resource according to the pop
-        self.buy_success = {name: 0} # history of buys; used to determine expected prices
-        self.sell_success = {name: 0}
+        names = [Rocket.name, Food.name]
+
+        self.desires = {}
+        self.goods_prices = {} # expected prices for every resource according to the pop
+        self.buy_success = {} # history of buys; used to determine expected prices
+        self.sell_success = {}
+
+        for n in names:
+            self.desires[n] = 10
+            self.goods_prices[n] = 1 # expected prices for every resource according to the pop
+            self.buy_success[n] = 0 # history of buys; used to determine expected prices
+            self.sell_success[n] = 0
 
     #########################
     # Interfaces to interact with pop
@@ -41,6 +50,7 @@ class Pop:
     def report(self):
         """Print various things."""
         print(f"name: {self.name}")
+        print(f"job: {self.job}")
         print(f"money: {self.money}")
         print(f"marketplace: {self.marketplace}")
         print(f"inventory: {self.get_inventory_amount(Rocket.name)} rockets")
@@ -107,6 +117,7 @@ class Pop:
         """
         curr_amount = self.get_inventory_amount(resource_name)
         ideal_amount = self.get_desired_amount(resource_name)
+        print(resource_name, curr_amount, ideal_amount, 'hi')
         expected_price = self.get_expected_price(resource_name)
         if ideal_amount > curr_amount:
             bid = self.create_buy(resource_name, expected_price)
@@ -121,7 +132,7 @@ class Pop:
         Pop will buy goods that cost at most BID_PRICE, but will happily buy at lower price.
         """
         desired_buy_amount = self.amount_to_buy(resource_name)
-        max_buy_amount = self.money / bid_price
+        max_buy_amount = int(self.money // bid_price)
         if max_buy_amount < 1:
             return
         buy_amount = min(desired_buy_amount, max_buy_amount)
@@ -149,7 +160,7 @@ class Pop:
         """
         curr_amount = self.get_inventory_amount(resource_name)
         ideal_amount = self.get_desired_amount(resource_name)
-        deficit = ideal_amount - curr_amount
+        deficit = int(ideal_amount - curr_amount)
         return deficit
 
     def amount_to_sell(self, resource_name):
@@ -161,7 +172,7 @@ class Pop:
         """
         curr_amount = self.get_inventory_amount(resource_name)
         ideal_amount = self.get_desired_amount(resource_name)
-        excess = curr_amount - ideal_amount
+        excess = int(curr_amount - ideal_amount)
         return excess
 
     def update_price_belief(self, resource_name):
@@ -190,34 +201,55 @@ class Pop:
         Maybe they have more actions or something.
         """
 
+
+
 class Rocketeer(Pop):
     """Makes rockets"""
 
+    job = 'Rocketeer'
+
     def produce(self):
         """The pop produces/consumes material."""
-        def produce_rocket():
-            """An example function. Add one to rocket amount."""
-            self.add_to_inventory(Rocket.name, 1)
-
-        produce_rocket()
+        make_food(self)
+        produce_rocket(self)
 
 
 class Rocket_eater(Pop):
-    """Consumes rockets"""
+    """Consumes rockets; makes food from rockets"""
+
+    job = 'Rocket_eater'
+
     def produce(self):
         """The pop produces/consumes material."""
-        def eat_rocket():
-            """An example function. Add one to rocket amount."""
-            if self.get_inventory_amount(Rocket.name) > 1:
-                self.add_to_inventory(Rocket.name, -1)
-                salary = random.uniform(1, 10)
-                self.add_cash(salary)
-                print(f'{self.name} made ${salary} from eating a rocket')
-            else:
-                self.add_cash(1)
+        eat_rocket(self)
 
-        eat_rocket()
+    #########################
+    # Production
+    #########################
 
+def produce_rocket(agent):
+    """An example function. Add one to rocket amount."""
+    agent.add_to_inventory(Rocket.name, 1)
+
+def eat_rocket(agent):
+    """An example function."""
+    while agent.get_inventory_amount(Rocket.name) > 1:
+        agent.add_to_inventory(Rocket.name, -1)
+        salary = random.uniform(1, 10)
+        #self.add_cash(salary)
+        make_food(agent, 1)
+        print(f'{agent.name} made one food from eating a rocket')
+    else:
+        agent.add_cash(1)
+
+def make_food(agent, amount=-1):
+    """Eat food"""
+    agent.add_to_inventory(Food.name, amount)
+
+
+    #########################
+    # Resources
+    #########################
 
 class Resource:
     """Class that represents all the commodities handled by the agents."""
@@ -227,5 +259,10 @@ class Resource:
 class Rocket(Resource):
     """An example resource."""
     name = 'Rocket'
+    def __init__(self, amount):
+        Resource.__init__(self, amount)
+
+class Food(Resource):
+    name = 'Food'
     def __init__(self, amount):
         Resource.__init__(self, amount)

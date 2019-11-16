@@ -9,7 +9,7 @@ class Marketplace:
         """Agents are actors that act in the economy. Can be pops or whole nations."""
         self.name = name
         self.agents = agents
-        self.clearing_price_list = {pops.Rocket.name: 4} # each resource's clearing price at this market
+        self.clearing_price_list = {pops.Rocket.name: 4, pops.Food.name: 10} # each resource's clearing price at this market
         self.agents_config()
         self.allowed_resources_config() # creates list of all resources that can be traded here
         self.market_reset() # prepare for new trading round
@@ -20,11 +20,15 @@ class Marketplace:
             agent.marketplace = self
 
     def allowed_resources_config(self):
-        self.allowed_resources = [pops.Rocket.name]
+        self.allowed_resources = [pops.Rocket.name, pops.Food.name]
 
     #########################
     # Interfaces to interact with marketplace
     #########################
+
+    def report_all(self):
+        for agent in self.agents:
+            agent.report()
 
     def get_clearing_price(self, resource_name):
         """Looks up the average clearing price of a resource as of the most recent trading round."""
@@ -58,7 +62,8 @@ class Marketplace:
             self.update_clearing_price(resource_name)
             print(f'clearing prices: {self.clearing_price_list}')
             self.adjust_agents(resource_name)
-            self.market_reset()
+            self.clearing_price_reset()
+        self.market_reset()
 
     def resolve_for_resource(self, resource_name):
         """Resolves outstanding transactions of a specific resource type."""
@@ -70,18 +75,18 @@ class Marketplace:
         resource_sell_list = [sell for sell in self.sell_list if sell.resource_name == resource_name]
         resource_buy_list.sort(key=transaction_key, reverse=True) # buys are sorted in descending order
         resource_sell_list.sort(key=transaction_key)
-        print(resource_buy_list)
-        print('and')
-        print(resource_sell_list)
+        #print(resource_buy_list)
+        #print('and')
+        #print(resource_sell_list)
+        print("len(buy): {0}\nlen(sell): {1}".format(len(resource_buy_list), len(resource_sell_list)))
 
         try:
             while resource_buy_list and resource_sell_list:
-                perform_transaction(self, resource_buy_list.pop(0), resource_buy_list.pop(0))
+                perform_transaction(self, resource_buy_list.pop(0), resource_sell_list.pop(0))
             for buy in resource_buy_list:
                 buy.bidder.failed_buy(resource_name)
             for sell in resource_sell_list:
                 sell.bidder.failed_sell(resource_name)
-
             return
         except NoTransactionException:
             return
@@ -90,10 +95,8 @@ class Marketplace:
         """Resets stuff for a new trading round."""
         self.buy_list = []      # bids and asks
         self.sell_list = []
+        self.clearing_price_reset()
 
-        # used to update clearing prices every day
-        self.material_exchanged = 0
-        self.money_exchanged = 0
 
     def adjust_agents(self, resource_name):
         """Agents update themselves according to what they saw took place."""
@@ -113,6 +116,11 @@ class Marketplace:
         except ZeroDivisionError:
             return
 
+    def clearing_price_reset(self):
+        """used to update clearing prices every day"""
+        self.material_exchanged = 0
+        self.money_exchanged = 0
+
     def add_bid(self, bid):
         """Adds a buy or sell bid to the marketplace."""
         if bid is None:
@@ -122,9 +130,17 @@ class Marketplace:
         elif isinstance(bid, Sell):
             self.sell_list.append(bid)
 
+    #########################
+    # Transaction Logic
+    #########################
+
+class NoTransactionException(Exception):
+    pass
+
 class Transaction:
     """Representation of offers for buying/selling resources."""
     def __init__(self, bidder, resource_name, bid_price, amount):
+        assert isinstance(amount, int), "bid amount must be int"
         self.bidder = bidder
         self.resource_name = resource_name
         self.bid_price = bid_price
@@ -135,7 +151,6 @@ class Transaction:
             return f"{self.bidder.name}; Buy; {self.amount} {self.resource_name}s; ${self.bid_price}"
         elif isinstance(self, Sell):
             return f"{self.bidder.name}; Sell; {self.amount} {self.resource_name}; ${self.bid_price}"
-
 
 class Buy(Transaction):
     def __init__(self, bidder, resource_name, bid_price, buy_amount):

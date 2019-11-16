@@ -21,6 +21,7 @@ class World:
     def simulate(self, time=1):
         """Run the simulation forward one timestep."""
         for _ in list(range(time)):
+            print(f"Worldtime: {self.time}")
             for marketplace in self.marketplaces:
                 marketplace.simulate()
             self.time += 1
