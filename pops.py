@@ -3,41 +3,75 @@ import marketplace
 import transactions
 
 class Pop:
-    """Class representing all people."""
-    def __init__(self, marketplace, needs, money, inventory, goods_prices):
-        """NEEDS is a dictionary: pairing up a type of material with how much they desire to buy/sell them.
+    """Class representing all people.
+    Maybe somehow implement a way to limit a Pop's number of actions per tick;
+    this could be used to represent privilege or productivity.
+    """
+    def __init__(self, marketplace, desires, money, inventory, goods_prices):
+        """DESIRES is a dictionary: pairing up a resource with the Pop's ideal amount.
         INVENTORY is a dict containing RESOURCE objects
         GOODS_PRICES is also a dict; adjusted with every transaction"""
         #self.size = size
         #self.ethnicity = ethnicity
         #self.religion = religion
         self.marketplace = marketplace
-        self.needs = needs
         self.money = money
         self.inventory = inventory
+        self.config_mental_state(desires, goods_prices, buy_success, sell_success)
+
+    def config_mental_state(self, desires, goods_prices, buy_success, sell_success):
+        """Function that sets up the Pop's attitudes towards things."""
+
+        # the following are essentially part of the pop's mental state and should not be accessed by others
+        self.desires = desires
         self.goods_prices = goods_prices    # expected prices for every resource according to the pop
-        self.buy_success = buy_success
+        self.buy_success = buy_success      # history of buys; used to determine expected prices
         self.sell_success = sell_success
 
         # need to code in the margin around which the pop would agree to a transaction
         #essentially amounts to a min and a max for bid_price
 
+    def add_to_inventory(self, outside_resource, amount):
+        """A function that adds/subtracts an AMOUNT of RESOURCE from the inventory."""
+        resource_name = outside_resource.name
+        inv_resource = self.inventory.get(resource_name)
+        inv_resource += amount
+
+    def add_cash(self, amount):
+        """The Pop is given AMOUNT of cash."""
+        self.money += amount
+
+    def get_inventory(self, resource_name):
+        """Looks up RESOURCE_NAME in inventory, and returns resource instance if successful."""
+        return self.inventory.get(resource_name)
+
+    def get_inventory_amount(self, resource_name):
+        """Returns the amount of a resource is in the inventory."""
+        return self.get_inventory(resource_name).amount
+
+    def get_expected_price(self, resource_name):
+        """Looks up the Pop's expectations for a resource's price."""
+        return self.goods_prices(resource_name)
+
+    def get_desired_amount(self, resource_name):
+        """Looks up the pop's desired amount of RESOURCE."""
+        return self.desires.get(resource_name)
+
     def produce(self):
         """The pop produces/consumes material."""
         def produce_rocket():
-            """Add one to rocket amount"""
-            rocket = self.inventory.get('Rocket')
-            rocket.amount += 1
+            """An example function. Add one to rocket amount."""
+            self.add_to_inventory(Rocket, 1)
 
         produce_rocket()
 
     def offer(self):
-        """The pop will offer up goods in its marketplace as it desires."""
+        """The pop will offer to buy/sell goods in its marketplace as it desires."""
         for resource_name in marketplace.allowed_resources:
-            resource = self.inventory[resource_name]
-            self.pop_ai(resource)
+            bid = self.pop_ai(resource_name)
+            self.marketplace.add_bid(bid)
 
-    def pop_ai(self, resource):
+    def pop_ai(self, resource_name):
         """The AI function: The pop tries to fulfill its wishes regarding a resource.
 
         resource_name = the type of resource being interacted with
@@ -45,23 +79,29 @@ class Pop:
         curr_amount = how much of this resource_name that this pop owns
         curr_price = the price of this resource_name in the pop's marketplace
 
-        Some vars unimplemented."""
-        resource_name = resource.name
-        curr_amount = resource.amount
-        ideal_amount = self.needs.get(resource_name)
-        expected_price = self.goods_prices.get(resource_name)
+        Some vars unimplemented.
+
+        Essentially creates and returns a Transaction for something.
+        """
+        curr_amount = self.get_inventory_amount(resource_name)
+        ideal_amount = self.get_desired_amount(resource_name)
+        expected_price = self.get_expected_price(resource_name)
         if ideal_amount > curr_amount:
             bid = self.create_buy(resource, expected_price)
         elif ideal_amount < curr_amount:
             bid = self.create_sell(resource, expected_price)
         else:
             bid = None
-        self.marketplace.add_bid(bid)
+        return bid
 
     def create_buy(self, resource, bid_price):
         """Returns an offer to buy a good at the marketplace"""
         buy_amount = amount_to_buy(self, resource)
         return Buy(self, resource, bid_price, buy_amount)
+
+        # find a way to negotiate a final price from these two
+        # maybe it's the bid price of the Sell instance?
+        # this makes sense
 
     def create_sell(self, resource, bid_price):
         """Returns an offer to sell a good at the marketplace"""
@@ -70,27 +110,31 @@ class Pop:
 
 #amount_to_buy and amount_to_buy reference unimplemented variables
 
-    def amount_to_buy(self, resource, curr_amount, ideal_amount):
+    def amount_to_buy(self, resource_name):
         """Return how much of RESOURCE that the pop wants to buy.
 
         MEAN = historical avg price of RESOURCE (as determined by the Resource class)
         FAVORABILITY = number between 0 and 1 determined by the transactions that the pop has seen
         DEFICIT = how much of RESOURCE it would take to get to ideal_amount
         """
+        curr_amount = self.get_inventory_amount(resource_name)
+        ideal_amount = self.get_desired_amount(resource_name)
         deficit = ideal_amount - curr_amount
         return deficit
 
-    def amount_to_sell(self, resource, curr_amount, ideal_amount):
+    def amount_to_sell(self, resource_name):
         """Return how much of RESOURCE that the pop wants to sell.
 
         MEAN = historical avg price of RESOURCE (as determined by the Resource class)
         FAVORABILITY = number between 0 and 1 determined by the transactions that the pop has seen
         EXCESS = how much of RESOURCE is in the inventory
         """
+        curr_amount = self.get_inventory_amount(resource_name)
+        ideal_amount = self.get_desired_amount(resource_name)
         excess = curr_amount - ideal_amount
         return excess
 
-    def update_price(self, resource):
+    def update_price(self, resource_name):
         """Method to update the prices that the pop expects to encounter in its marketplace."""
         pass
 
@@ -102,7 +146,9 @@ class Pop:
         """Represents people in the middle echelons of society."""
 
         #class Upper_Class(Pop):
-        """Represents people in the upper echelons of society."""
+        """Represents people in the upper echelons of society.
+        Maybe they have more actions or something.
+        """
 
 class Resource:
     """Class that represents all the commodities handled by the agents."""
@@ -111,6 +157,6 @@ class Resource:
         self.amount = amount
 
 class Rocket(Resource):
-    """An example class."""
+    """An example resource."""
     def __init__(self, amount):
         Resource.__init__(self, 'Rocket', amount)
