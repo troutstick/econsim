@@ -1,17 +1,19 @@
 import markets
+import random
 
 class Pop:
     """Class representing all people.
     Maybe somehow implement a way to limit a Pop's number of actions per tick;
     this could be used to represent privilege or productivity.
     """
-    def __init__(self, money=0):
+    def __init__(self, name='Bob', money=0):
         """DESIRES is a dictionary: pairing up a resource with the Pop's ideal amount.
         INVENTORY is a dict containing RESOURCE objects
         GOODS_PRICES is also a dict; adjusted with every transaction"""
         #self.size = size
         #self.ethnicity = ethnicity
         #self.religion = religion
+        self.name = name
         self.money = money
         self.marketplace = None
         self.inventory = {}
@@ -38,6 +40,7 @@ class Pop:
 
     def report(self):
         """Print various things."""
+        print(f"name: {self.name}")
         print(f"money: {self.money}")
         print(f"marketplace: {self.marketplace}")
         print(f"inventory: {self.get_inventory_amount(Rocket.name)} rockets")
@@ -70,7 +73,7 @@ class Pop:
 
     def get_expected_price(self, resource_name):
         """Looks up the Pop's expectations for a resource's price."""
-        return self.goods_prices(resource_name)
+        return self.goods_prices.get(resource_name)
 
     def get_desired_amount(self, resource_name):
         """Looks up the pop's desired amount of RESOURCE."""
@@ -80,15 +83,11 @@ class Pop:
 
     def produce(self):
         """The pop produces/consumes material."""
-        def produce_rocket():
-            """An example function. Add one to rocket amount."""
-            self.add_to_inventory(Rocket.name, 1)
-
-        produce_rocket()
+        pass
 
     def offer(self):
         """The pop will offer to buy/sell goods in its marketplace as it desires."""
-        for resource_name in marketplace.allowed_resources:
+        for resource_name in self.marketplace.allowed_resources:
             bid = self.pop_ai(resource_name)
             self.marketplace.add_bid(bid)
 
@@ -108,9 +107,11 @@ class Pop:
         ideal_amount = self.get_desired_amount(resource_name)
         expected_price = self.get_expected_price(resource_name)
         if ideal_amount > curr_amount:
-            bid = self.create_buy(resource, expected_price)
+            bid = self.create_buy(resource_name, expected_price)
+            print(f'{self.name} buy')
         elif ideal_amount < curr_amount:
-            bid = self.create_sell(resource, expected_price)
+            bid = self.create_sell(resource_name, expected_price)
+            print(f'{self.name} sell')
         else:
             bid = None
         return bid
@@ -119,8 +120,8 @@ class Pop:
         """Returns an offer to buy a good at the marketplace.
         Pop will buy goods that cost at most BID_PRICE, but will happily buy at lower price.
         """
-        buy_amount = amount_to_buy(self, resource_name)
-        return Buy(self, resource_name, bid_price, buy_amount)
+        buy_amount = self.amount_to_buy(resource_name)
+        return markets.Buy(self, resource_name, bid_price, buy_amount)
 
         # find a way to negotiate a final price from these two
         # maybe it's the bid price of the Sell instance?
@@ -130,8 +131,8 @@ class Pop:
         """Returns an offer to sell a good at the marketplace.
         Pop will sell goods for at least BID_PRICE, but will happily sell at higher price.
         """
-        sell_amount = amount_to_sell(self, resource_name)
-        return Sell(self, resource_name, bid_price, sell_amount)
+        sell_amount = self.amount_to_sell(resource_name)
+        return markets.Sell(self, resource_name, bid_price, sell_amount)
 
 #amount_to_buy and amount_to_buy reference unimplemented variables
 
@@ -159,9 +160,12 @@ class Pop:
         excess = curr_amount - ideal_amount
         return excess
 
-    def update_price(self, resource_name):
+    def update_price_belief(self, resource_name):
         """Method to update the prices that the pop expects to encounter in its marketplace."""
-        pass
+        clearing_price = self.marketplace.get_clearing_price(resource_name)
+        expected_price = self.get_expected_price(resource_name)
+        diff = clearing_price - expected_price
+        self.goods_prices[resource_name] += (diff * random.random())
 
 
         #class Lower_Class(Pop):
@@ -174,6 +178,31 @@ class Pop:
         """Represents people in the upper echelons of society.
         Maybe they have more actions or something.
         """
+
+class Rocketeer(Pop):
+    """Makes rockets"""
+
+    def produce(self):
+        """The pop produces/consumes material."""
+        def produce_rocket():
+            """An example function. Add one to rocket amount."""
+            self.add_to_inventory(Rocket.name, 1)
+            print(f'{self.name} produces a rocket!')
+
+        produce_rocket()
+
+
+class Rocket_eater(Pop):
+    """Consumes rockets"""
+    def produce(self):
+        """The pop produces/consumes material."""
+        def eat_rocket():
+            """An example function. Add one to rocket amount."""
+            self.add_to_inventory(Rocket.name, -1)
+            print(f'{self.name} eats a rocket!')
+
+        eat_rocket()
+
 
 class Resource:
     """Class that represents all the commodities handled by the agents."""
