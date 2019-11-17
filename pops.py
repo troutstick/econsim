@@ -33,7 +33,7 @@ class Pop:
         self.config_mental_state()
 
     def __repr__(self):
-        return self.id
+        return self.job + self.id
 
     def __str__(self):
         return self.name

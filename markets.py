@@ -68,6 +68,9 @@ class Marketplace:
 
     def most_profitable(self):
         """Returns the most profitable job at the marketplace."""
+
+        # needs to be changed to account for poor demand elasticity
+
         plist = self.profit_list
         answer = max(plist, key=self.profitability)
         return answer
