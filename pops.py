@@ -115,13 +115,15 @@ class Pop:
             self.penniless()
         if self.bankrupt:
             job_name = self.marketplace.most_profitable()
-            agent_type = [agent_type for agent_type in pop_types if agent_type.job == job_name].pop(0)
-            new_instance = agent_type(self.name, self.money, self.id)
-            new_instance.goods_prices = self.goods_prices
-            new_instance.inventory = self.inventory
-            new_instance.pennilessness -= 5
-            print(f'{self.name}: {self.job} -> {new_instance.job}')
-            self.marketplace.replace_agent(self, new_instance)
+            # only switch if new job is different
+            if job_name != self.job:
+                agent_type = [agent_type for agent_type in pop_types if agent_type.job == job_name].pop(0)
+                new_instance = agent_type(self.name, self.money, self.id)
+                new_instance.goods_prices = self.goods_prices
+                new_instance.inventory = self.inventory
+                new_instance.pennilessness -= 5
+                print(f'{self.name}: {self.job} -> {new_instance.job}')
+                self.marketplace.replace_agent(self, new_instance)
 
     def penniless(self):
         """Penniless counter is increased to measure bankruptcy."""
