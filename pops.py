@@ -9,19 +9,27 @@ class Pop:
     """
     job = 'N/A'
 
-    def __init__(self, name='Bob', money=0):
+    def __init__(self, name='Bob', money=0, id='No ID'):
         """DESIRES is a dictionary: pairing up a resource with the Pop's ideal amount.
         INVENTORY is a dict containing RESOURCE objects
         GOODS_PRICES is also a dict; adjusted with every transaction"""
         #self.size = size
         #self.ethnicity = ethnicity
         #self.religion = religion
+        self.id = id
         self.name = name
         self.money = money
         self.marketplace = None
         self.inventory = {}
         self.config_pop()
         self.config_mental_state()
+
+    def __repr__(self):
+        return self.id
+
+    def __str__(self):
+        return self.name
+
 
     def config_pop(self):
         """Default setup. WIP."""
@@ -65,7 +73,7 @@ class Pop:
     def add_to_inventory(self, resource_name, amount):
         """A function that adds/subtracts an AMOUNT of RESOURCE from the inventory."""
         resource = self.inventory.get(resource_name)
-        resource.amount += amount
+        resource.change_amount(amount)
 
     def add_cash(self, amount):
         """The Pop is given AMOUNT of cash."""
@@ -75,8 +83,6 @@ class Pop:
         """Function for an agent to exchange cash for resource."""
         self.add_to_inventory(resource_name, resource_amount)
         self.add_cash(cash_amount)
-        self.goods_prices[resource_name] *= random.uniform(1.0, 1.25)
-
 
     def get_inventory(self, resource_name):
         """Looks up RESOURCE_NAME in inventory, and returns resource instance if successful."""
@@ -114,13 +120,10 @@ class Pop:
         curr_amount = how much of this resource_name that this pop owns
         curr_price = the price of this resource_name in the pop's marketplace
 
-        Some vars unimplemented.
-
-        Essentially creates and returns a Transaction for something.
+        Creates and returns a Transaction for something.
         """
         curr_amount = self.get_inventory_amount(resource_name)
         ideal_amount = self.get_desired_amount(resource_name)
-        print(resource_name, curr_amount, ideal_amount, 'hi')
         expected_price = self.get_expected_price(resource_name)
         if ideal_amount > curr_amount:
             bid = self.create_buy(resource_name, expected_price)
@@ -185,12 +188,24 @@ class Pop:
         diff = clearing_price - expected_price
         self.goods_prices[resource_name] += (diff * random.random())
 
+    def successful_buy(self, resource_name):
+        """The Pop will try to negotiate for a lower price next time.
+        WIP — the pop should be less aggressive with more experience in the market.
+        """
+        self.goods_prices[resource_name] *= random.uniform(0.9, 1.0)
+
+    def successful_sell(self, resource_name):
+        """The Pop will try to negotiate for a higher price next time."""
+        self.goods_prices[resource_name] *= random.uniform(1.0, 1.2)
+
     def failed_buy(self, resource_name):
-        """The pop adjusts expectations when faced with a failed transaction."""
+        """The pop lowers expectations when faced with a failed transaction.
+        It will try to buy goods at a higher price in the future.
+        """
         self.goods_prices[resource_name] *= random.uniform(1.0, 1.1)
 
     def failed_sell(self, resource_name):
-        """The pop adjusts expectations when faced with a failed transaction."""
+        """The pop lowers expectations when faced with a failed transaction."""
         self.goods_prices[resource_name] *= random.uniform(0.9, 1.0)
 
         #class Lower_Class(Pop):
@@ -211,10 +226,17 @@ class Rocketeer(Pop):
 
     job = 'Rocketeer'
 
+    def produce_rocket(self):
+        """An example function. Add one to rocket amount."""
+        self.add_to_inventory('Rocket', 1)
+
     def produce(self):
         """The pop produces/consumes material."""
-        make_food(self)
-        produce_rocket(self)
+        try:
+            self.add_to_inventory('Food', -1)
+        except goods.ResourceException:
+            self.goods_prices['Food'] += 1
+        self.produce_rocket()
 
 
 class Rocket_eater(Pop):
@@ -222,29 +244,20 @@ class Rocket_eater(Pop):
 
     job = 'Rocket_eater'
 
+    def eat_rocket(self):
+        """An example function."""
+        k = 0
+        while self.get_inventory_amount('Rocket') > 1:
+            self.add_to_inventory('Rocket', -1)
+            self.add_to_inventory('Food', 1)
+            k += 1
+        if k > 0:
+            print(f'{self.name} ate {k} Rocket and made {k} Food')
+
     def produce(self):
         """The pop produces/consumes material."""
-        eat_rocket(self)
+        self.eat_rocket()
 
     #########################
     # Production
     #########################
-
-def produce_rocket(agent):
-    """An example function. Add one to rocket amount."""
-    agent.add_to_inventory(goods.Rocket.name, 1)
-
-def eat_rocket(agent):
-    """An example function."""
-    while agent.get_inventory_amount(goods.Rocket.name) > 1:
-        agent.add_to_inventory(goods.Rocket.name, -1)
-        salary = random.uniform(1, 10)
-        #self.add_cash(salary)
-        make_food(agent, 1)
-        print(f'{agent.name} made one food from eating a rocket')
-    else:
-        agent.add_cash(1)
-
-def make_food(agent, amount=-1):
-    """Eat food"""
-    agent.add_to_inventory(goods.Food.name, amount)

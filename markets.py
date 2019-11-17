@@ -16,6 +16,9 @@ class Marketplace:
         self.allowed_resources_config() # creates list of all resources that can be traded here
         self.market_reset() # prepare for new trading round
 
+    def __repr__(self):
+        return self.name
+
     def agents_config(self):
         """Every agent is told what marketplace they operate in."""
         for agent in self.agents:
@@ -32,6 +35,7 @@ class Marketplace:
 
     def report_all(self):
         for agent in self.agents:
+            print('')
             agent.report()
 
     def get_clearing_price(self, resource_name):
@@ -172,19 +176,22 @@ def perform_transaction(marketplace, buy, sell):
     """
     buyer = buy.bidder
     seller = sell.bidder
-    print(f'{buyer.name} tries to buy from {seller.name}')
+    resource_name = buy.resource_name
     if buy.bid_price >= sell.bid_price:
         resource_amount = min(buy.amount, sell.amount)
-        resource_name = buy.resource_name
         clearing_price = (buy.bid_price + sell.bid_price) / 2
         total_price = resource_amount * clearing_price
 
-        print(f"{buyer.name} bought {resource_amount} {resource_name} from {seller.name} for only {total_price} money!")
+        print(f"{buyer.name} bought {resource_amount} {resource_name} from {seller.name} for only {clearing_price} each!")
 
         buyer.exchange(resource_name, resource_amount, -total_price)
+        buyer.successful_buy(resource_name)
         seller.exchange(resource_name, -resource_amount, total_price)
+        seller.successful_sell(resource_name)
         marketplace.exchange(resource_name, resource_amount, total_price)
     else:
+        buyer.failed_buy(resource_name) # all outstanding bids also receive this
+        seller.failed_sell(resource_name)
         print(f'{buyer.name} and {seller.name} unable to agree to a deal.')
         raise NoTransactionException('no transaction')
 
