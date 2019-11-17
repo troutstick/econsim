@@ -5,9 +5,7 @@ class World:
     """The world in which the simulation takes place."""
     def __init__(self, marketplaces = []):
         self.time = 0
-        self.agents = agents
         self.marketplaces = marketplaces
-        self.config_agents()
         self.config_marketplaces()
 
     def config_marketplaces(self):

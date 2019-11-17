@@ -1,5 +1,6 @@
 import pops
 import goods
+from math import sqrt
 
 class Marketplace:
     """Where money is exchanged for goods and services.
@@ -60,7 +61,16 @@ class Marketplace:
     def profitability(self, jobtype):
         """Returns the avg profitability of a job type over the last ROLLING_AVG_WINDOW rounds."""
         recent_profits = self.profit_list[jobtype]
-        return sum(recent_profits) / len(recent_profits)
+        try:
+            return sum(recent_profits) / len(recent_profits)
+        except ZeroDivisionError:
+            return float('inf')
+
+    def most_profitable(self):
+        """Returns the most profitable job at the marketplace."""
+        plist = self.profit_list
+        answer = max(plist, key=self.profitability)
+        return answer
 
     def report_all(self):
         for agent in self.agents:
@@ -70,6 +80,22 @@ class Marketplace:
     def get_clearing_price(self, resource_name):
         """Looks up the average clearing price of a resource as of the most recent trading round."""
         return self.clearing_price_list.get(resource_name)
+
+    def add_agent(self, agent):
+        """Add a new agent to the marketplace."""
+        self.agents.append(agent)
+        self.sorted_agents[agent.job].append(agent)
+        agent.marketplace = self
+
+    def remove_agent(self, agent):
+        """All references to this agent in the marketplace are deleted."""
+        self.agents.remove(agent)
+        self.sorted_agents[agent.job].remove(agent)
+
+    def replace_agent(self, replacer, replacee):
+        """Replace one agent in the market with another."""
+        self.remove_agent(replacer)
+        self.add_agent(replacee)
 
     #########################
     # Simulation
@@ -82,6 +108,7 @@ class Marketplace:
         self.generate_offers()
         self.resolve_offers()
         self.measure_profits()
+        self.promote_demote()
 
     def perform_production(self):
         """Various resources are produced/consumed."""
@@ -95,6 +122,7 @@ class Marketplace:
 
     def resolve_offers(self):
         """Willing buyers and sellers perform transactions."""
+        print("len(buy): {0}\nlen(sell): {1}".format(len(self.buy_list), len(self.sell_list)))
         for resource_name in self.allowed_resources:
             self.resolve_for_resource(resource_name)
             self.update_clearing_price(resource_name)
@@ -108,12 +136,23 @@ class Marketplace:
         profit values."""
         for agent_name, agent_list in self.sorted_agents.items():
             agents_profit = 0
+            print(agent_list)
             moving_avg_profit = self.profit_list[agent_name]
-            for agent in agent_list:
-                agents_profit += agent.measure_profits()
-            moving_avg_profit.append(agents_profit)
+            if agent_list:
+                for agent in agent_list:
+                    agents_profit += agent.measure_profits()
+                moving_avg_profit.append(agents_profit)
             if len(moving_avg_profit) > self.rolling_avg_window:
                 moving_avg_profit.pop(0)
+            elif len(agent_list) == 0 and len(moving_avg_profit) > 0:
+                moving_avg_profit.pop(0)
+
+    def promote_demote(self):
+        """All unprofitable agents switch jobs.
+        i.e. they are replaced with an agent with the same attributes but are a different type.
+        """
+        for agent in self.agents:
+            agent.promote_demote()
 
     def resolve_for_resource(self, resource_name):
         """Resolves outstanding transactions of a specific resource type."""
@@ -125,10 +164,10 @@ class Marketplace:
         resource_sell_list = [sell for sell in self.sell_list if sell.resource_name == resource_name]
         resource_buy_list.sort(key=transaction_key, reverse=True) # buys are sorted in descending order
         resource_sell_list.sort(key=transaction_key)
-        #print(resource_buy_list)
-        #print('and')
-        #print(resource_sell_list)
-        print("len(buy): {0}\nlen(sell): {1}".format(len(resource_buy_list), len(resource_sell_list)))
+
+        supply = len(resource_sell_list)
+        demand = len(resource_buy_list)
+        self.demand_supply_ratio = sqrt(demand / max(supply, 1))
 
         try:
             while resource_buy_list and resource_sell_list:
@@ -151,7 +190,7 @@ class Marketplace:
     def adjust_agents(self, resource_name):
         """Agents update themselves according to what they saw took place."""
         for agent in self.agents:
-            agent.update_price_belief(resource_name)
+            agent.update_price_belief(resource_name, self.demand_supply_ratio)
 
 
     def exchange(self, resource_name, resource_amount, cash_amount):
@@ -162,7 +201,9 @@ class Marketplace:
     def update_clearing_price(self, resource_name):
         """Updates the average price per unit of material sold during a trading round."""
         try:
-            self.clearing_price_list[resource_name] = self.money_exchanged / self.material_exchanged
+            self.clearing_price_list[resource_name] = (
+                self.money_exchanged / self.material_exchanged
+                )
         except ZeroDivisionError:
             return
 
@@ -170,6 +211,7 @@ class Marketplace:
         """used to update clearing prices every day"""
         self.material_exchanged = 0
         self.money_exchanged = 0
+        self.demand_supply_ratio = 1
 
     def add_bid(self, bid):
         """Adds a buy or sell bid to the marketplace."""
@@ -191,6 +233,7 @@ class Transaction:
     """Representation of offers for buying/selling resources."""
     def __init__(self, bidder, resource_name, bid_price, amount):
         assert isinstance(amount, int), "bid amount must be int"
+        assert amount >= 1, 'bid amount must be positive'
         self.bidder = bidder
         self.resource_name = resource_name
         self.bid_price = bid_price

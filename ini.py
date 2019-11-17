@@ -15,17 +15,16 @@ rocketeer = pops.Rocketeer
 rocket_eater = pops.Rocket_eater
 r = random.randint
 
-bob = rocketeer('Bob', 100)
-bob.report()
-michael = rocket_eater('Michael', 100)
+#bob = rocketeer('Bob', 100)
 
-#rocketeers = [rocketeer(next(names), r(0, 1000), next(ids)) for _ in range(20)]
-#rocket_eaters = [rocket_eater(next(names), r(0, 1000), next(ids)) for _ in range(20)]
+rocketeers = [rocketeer(next(names), r(0, 1000), next(ids)) for _ in range(20)]
+rocket_eaters = [rocket_eater(next(names), r(0, 1000), next(ids)) for _ in range(20)]
 
 
-agents = [bob, michael]
+agents = rocketeers + rocket_eaters
 market = markets.Marketplace('London', agents)
 earth = gamelogic.World([market])
 s = earth.simulate
 r = market.report_all
-print("use s(time) to simulate, and r() to get reports from agents in the market")
+p = market.agent_population
+print("Use s(time) to simulate, and r() to get reports from agents in the market")

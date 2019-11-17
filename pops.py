@@ -23,6 +23,10 @@ class Pop:
         self.previous_money = money # used to calculate profit
         self.daily_profit = 0
 
+        self.pennilessness = 0
+        self.bankruptcy_threshold = 5
+        self.bankrupt = False
+
         self.marketplace = None
         self.inventory = {}
         self.config_pop()
@@ -39,7 +43,7 @@ class Pop:
         """Default setup. WIP."""
         self.inventory = {}
         for resource in goods.implemented:
-            self.inventory[resource.name] = resource(0)
+            self.inventory[resource.name] = resource(10)
 
     def config_mental_state(self):
         """Function that sets up the Pop's attitudes towards things.
@@ -105,10 +109,33 @@ class Pop:
         """Looks up the pop's desired amount of RESOURCE."""
         return self.desires.get(resource_name)
 
+    def promote_demote(self):
+        """Tries to switch jobs if it's reasonable to do so."""
+        if self.money < 0:
+            self.penniless()
+        if self.bankrupt:
+            job_name = self.marketplace.most_profitable()
+            agent_type = [agent_type for agent_type in pop_types if agent_type.job == job_name].pop(0)
+            new_instance = agent_type(self.name, self.money, self.id)
+            new_instance.goods_prices = self.goods_prices
+            new_instance.inventory = self.inventory
+            new_instance.pennilessness -= 5
+            print(f'{self.name}: {self.job} -> {new_instance.job}')
+            self.marketplace.replace_agent(self, new_instance)
+
+    def penniless(self):
+        """Penniless counter is increased to measure bankruptcy."""
+        self.pennilessness += 1
+        if self.pennilessness > self.bankruptcy_threshold:
+            self.bankrupt = True
+            print(f"{self.name} goes bankrupt!")
+
     ###################################################
 
     def produce(self):
-        """The pop produces/consumes material."""
+        """The pop produces/consumes material.
+        Left blank for typeless pop.
+        """
         pass
 
     def offer(self):
@@ -143,10 +170,10 @@ class Pop:
         Pop will buy goods that cost at most BID_PRICE, but will happily buy at lower price.
         """
         desired_buy_amount = self.amount_to_buy(resource_name)
-        max_buy_amount = int(self.money // bid_price)
-        if max_buy_amount < 1:
-            return
+        max_buy_amount = int(self.money // bid_price) + 1
         buy_amount = min(desired_buy_amount, max_buy_amount)
+        if buy_amount < 1:
+            return
         return markets.Buy(self, resource_name, bid_price, buy_amount)
 
         # find a way to negotiate a final price from these two
@@ -158,6 +185,8 @@ class Pop:
         Pop will sell goods for at least BID_PRICE, but will happily sell at higher price.
         """
         sell_amount = self.amount_to_sell(resource_name)
+        if sell_amount < 1:
+            return
         return markets.Sell(self, resource_name, bid_price, sell_amount)
 
 #amount_to_buy and amount_to_buy reference unimplemented variables
@@ -186,7 +215,7 @@ class Pop:
         excess = int(curr_amount - ideal_amount)
         return excess
 
-    def update_price_belief(self, resource_name):
+    def update_price_belief(self, resource_name, demand_supply_ratio):
         """Method to update the prices that the pop expects to encounter in its marketplace."""
         clearing_price = self.marketplace.get_clearing_price(resource_name)
         expected_price = self.get_expected_price(resource_name)
@@ -238,7 +267,7 @@ class Rocketeer(Pop):
 
     def produce_rocket(self):
         """An example function. Add one to rocket amount."""
-        self.add_to_inventory('Rocket', 1)
+        self.add_to_inventory('Rocket', 4)
 
     def produce(self):
         """The pop produces/consumes material."""
@@ -256,7 +285,7 @@ class Rocket_eater(Pop):
         k = 0
         while self.get_inventory_amount('Rocket') > 1:
             self.add_to_inventory('Rocket', -1)
-            self.add_to_inventory('Food', 1)
+            self.add_to_inventory('Food', 2)
             k += 1
         if k > 0:
             print(f'{self.name} ate {k} Rocket and made {k} Food')
@@ -275,7 +304,8 @@ def eat_food(agent):
     try:
         agent.add_to_inventory('Food', -1)
     except goods.ResourceException:
-        agent.goods_prices['Food'] += 1
+        agent.goods_prices['Food'] *= random.uniform(1.0, 1.2)
+        agent.penniless()
 
 # shows all jobs
 pop_types = [Rocketeer, Rocket_eater]
