@@ -12,6 +12,12 @@ class Marketplace:
         self.agents = agents
         self.clearing_price_list = {} # each resource's clearing price at this market
 
+        self.profit_list = {} # shows how profitable each job is
+        # each key points to a list with profit values from the previous 10 rounds
+        self.sorted_agents = {}
+
+        self.rolling_avg_window = 10
+
         self.agents_config()
         self.allowed_resources_config() # creates list of all resources that can be traded here
         self.market_reset() # prepare for new trading round
@@ -20,9 +26,19 @@ class Marketplace:
         return self.name
 
     def agents_config(self):
-        """Every agent is told what marketplace they operate in."""
+        """Every agent is told what marketplace they operate in, and they are
+        sorted into lists according to their jobtype.
+        """
+        for agent_type in pops.pop_types:
+            key = agent_type.job
+            self.sorted_agents[key] = []
+            self.profit_list[key] = []
+            for agent in self.agents:
+                if isinstance(agent, agent_type):
+                    self.sorted_agents[agent_type.job].append(agent)
         for agent in self.agents:
             agent.marketplace = self
+            self.sorted_agents[agent.job]
 
     def allowed_resources_config(self):
         self.allowed_resources = [r.name for r in goods.implemented]
@@ -32,6 +48,19 @@ class Marketplace:
     #########################
     # Interfaces to interact with marketplace
     #########################
+
+    def list_agents(self):
+        return self.sorted_agents
+
+    def agent_population(self):
+        print(f'Population: {len(self.agents)}')
+        for agent_type, agent_list in self.sorted_agents.items():
+            print(f'{agent_type}: {len(agent_list)}')
+
+    def profitability(self, jobtype):
+        """Returns the avg profitability of a job type over the last ROLLING_AVG_WINDOW rounds."""
+        recent_profits = self.profit_list[jobtype]
+        return sum(recent_profits) / len(recent_profits)
 
     def report_all(self):
         for agent in self.agents:
@@ -52,6 +81,7 @@ class Marketplace:
         self.perform_production()
         self.generate_offers()
         self.resolve_offers()
+        self.measure_profits()
 
     def perform_production(self):
         """Various resources are produced/consumed."""
@@ -72,6 +102,16 @@ class Marketplace:
             self.adjust_agents(resource_name)
             self.clearing_price_reset()
         self.market_reset()
+
+    def measure_profits(self):
+        for agent_name, agent_list in self.sorted_agents.items():
+            agents_profit = 0
+            moving_avg_profit = self.profit_list[agent_name]
+            for agent in agent_list:
+                agents_profit += agent.measure_profits()
+            moving_avg_profit.append(agents_profit)
+            if len(moving_avg_profit) > self.rolling_avg_window:
+                moving_avg_profit.pop(0)
 
     def resolve_for_resource(self, resource_name):
         """Resolves outstanding transactions of a specific resource type."""

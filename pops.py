@@ -18,7 +18,11 @@ class Pop:
         #self.religion = religion
         self.id = id
         self.name = name
+
         self.money = money
+        self.previous_money = money # used to calculate profit
+        self.daily_profit = 0
+
         self.marketplace = None
         self.inventory = {}
         self.config_pop()
@@ -63,6 +67,7 @@ class Pop:
         print(f"name: {self.name}")
         print(f"job: {self.job}")
         print(f"money: {self.money}")
+        print(f"recent profit: {self.daily_profit}")
         print(f"marketplace: {self.marketplace}")
         print(f"inventory: {self.inventory}")
         print(f"desires: {self.desires}")
@@ -208,6 +213,11 @@ class Pop:
         """The pop lowers expectations when faced with a failed transaction."""
         self.goods_prices[resource_name] *= random.uniform(0.9, 1.0)
 
+    def measure_profits(self):
+        """The pop sees how much money it made (or didn't make) in the last trading round."""
+        self.daily_profit = self.money - self.previous_money
+        return self.daily_profit
+
         #class Lower_Class(Pop):
         """Represents people in the lower echelons of society."""
 
@@ -232,10 +242,7 @@ class Rocketeer(Pop):
 
     def produce(self):
         """The pop produces/consumes material."""
-        try:
-            self.add_to_inventory('Food', -1)
-        except goods.ResourceException:
-            self.goods_prices['Food'] += 1
+        eat_food(self)
         self.produce_rocket()
 
 
@@ -257,7 +264,18 @@ class Rocket_eater(Pop):
     def produce(self):
         """The pop produces/consumes material."""
         self.eat_rocket()
+        eat_food(self)
 
     #########################
     # Production
     #########################
+
+def eat_food(agent):
+    """Daily food need simulated."""
+    try:
+        agent.add_to_inventory('Food', -1)
+    except goods.ResourceException:
+        agent.goods_prices['Food'] += 1
+
+# shows all jobs
+pop_types = [Rocketeer, Rocket_eater]
