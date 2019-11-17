@@ -104,6 +104,8 @@ class Marketplace:
         self.market_reset()
 
     def measure_profits(self):
+        """Builds the rolling average list of profits; agents update their own
+        profit values."""
         for agent_name, agent_list in self.sorted_agents.items():
             agents_profit = 0
             moving_avg_profit = self.profit_list[agent_name]
