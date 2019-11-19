@@ -53,6 +53,10 @@ class Pop:
 
         self.desires = {}
         self.goods_prices = {} # expected prices for every resource according to the pop
+        """Prices should be a dictionary with a key pointing to two numbers?
+        Or some kind of object with two attributes.
+        CONSIDER CREATING A CLASS FOR THIS
+        """
 
         # WIP
         self.buy_success = {} # history of buys; used to determine expected prices
@@ -134,6 +138,11 @@ class Pop:
             self.bankrupt = True
             print(f"{self.name} goes bankrupt!")
 
+    def change_marketplace(self, marketplace):
+        """Pop changes marketplace and sets up prices to match."""
+        self.marketplace = marketplace
+        """Need to have them set up their prices"""
+
     ###################################################
 
     def produce(self):
@@ -160,19 +169,19 @@ class Pop:
         """
         curr_amount = self.get_inventory_amount(resource_name)
         ideal_amount = self.get_desired_amount(resource_name)
-        expected_price = self.get_expected_price(resource_name)
         if ideal_amount > curr_amount:
-            bid = self.create_buy(resource_name, expected_price)
+            bid = self.create_buy(resource_name)
         elif ideal_amount < curr_amount:
-            bid = self.create_sell(resource_name, expected_price)
+            bid = self.create_sell(resource_name)
         else:
             bid = None
         return bid
 
-    def create_buy(self, resource_name, bid_price):
+    def create_buy(self, resource_name):
         """Returns an offer to buy a good at the marketplace.
         Pop will buy goods that cost at most BID_PRICE, but will happily buy at lower price.
         """
+        bid_price = self.get_expected_price(resource_name)
         desired_buy_amount = self.amount_to_buy(resource_name)
         max_buy_amount = int(self.money // bid_price) + 1
         buy_amount = min(desired_buy_amount, max_buy_amount)
@@ -184,10 +193,11 @@ class Pop:
         # maybe it's the bid price of the Sell instance?
         # this makes sense
 
-    def create_sell(self, resource_name, bid_price):
+    def create_sell(self, resource_name):
         """Returns an offer to sell a good at the marketplace.
         Pop will sell goods for at least BID_PRICE, but will happily sell at higher price.
         """
+        bid_price = self.get_expected_price(resource_name)
         sell_amount = self.amount_to_sell(resource_name)
         if sell_amount < 1:
             return

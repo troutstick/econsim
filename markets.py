@@ -38,7 +38,7 @@ class Marketplace:
                 if isinstance(agent, agent_type):
                     self.sorted_agents[agent_type.job].append(agent)
         for agent in self.agents:
-            agent.marketplace = self
+            agent.change_marketplace(self)
             self.sorted_agents[agent.job]
 
     def allowed_resources_config(self):
@@ -88,7 +88,7 @@ class Marketplace:
         """Add a new agent to the marketplace."""
         self.agents.append(agent)
         self.sorted_agents[agent.job].append(agent)
-        agent.marketplace = self
+        agent.change_marketplace(self)
 
     def remove_agent(self, agent):
         """All references to this agent in the marketplace are deleted."""
