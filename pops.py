@@ -33,7 +33,7 @@ class Pop:
         self.config_mental_state()
 
     def __repr__(self):
-        return self.job + self.id
+        return self.id
 
     def __str__(self):
         return self.name
@@ -53,6 +53,8 @@ class Pop:
 
         self.desires = {}
         self.goods_prices = {} # expected prices for every resource according to the pop
+
+        # WIP
         self.buy_success = {} # history of buys; used to determine expected prices
         self.sell_success = {}
 
@@ -228,11 +230,13 @@ class Pop:
         """The Pop will try to negotiate for a lower price next time.
         WIP — the pop should be less aggressive with more experience in the market.
         """
-        self.goods_prices[resource_name] *= random.uniform(0.9, 1.0)
+        print('fix me')
+        #self.goods_prices[resource_name] *= random.uniform(0.95, 1.0)
 
     def successful_sell(self, resource_name):
         """The Pop will try to negotiate for a higher price next time."""
-        self.goods_prices[resource_name] *= random.uniform(1.0, 1.2)
+        print('fix me')
+        #self.goods_prices[resource_name] *= random.uniform(1.0, 1.05)
 
     def failed_buy(self, resource_name):
         """The pop lowers expectations when faced with a failed transaction.

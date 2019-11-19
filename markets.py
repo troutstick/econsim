@@ -139,7 +139,7 @@ class Marketplace:
         profit values."""
         for agent_name, agent_list in self.sorted_agents.items():
             agents_profit = 0
-            print(agent_list)
+            print(f"{len(agent_list)} {agent_name}")
             moving_avg_profit = self.profit_list[agent_name]
             if agent_list:
                 for agent in agent_list:
@@ -167,7 +167,8 @@ class Marketplace:
         resource_sell_list = [sell for sell in self.sell_list if sell.resource_name == resource_name]
         resource_buy_list.sort(key=transaction_key, reverse=True) # buys are sorted in descending order
         resource_sell_list.sort(key=transaction_key)
-
+        print(resource_buy_list)
+        print(resource_sell_list)
         supply = len(resource_sell_list)
         demand = len(resource_buy_list)
         self.demand_supply_ratio = sqrt(demand / max(supply, 1))
