@@ -249,13 +249,11 @@ class Pop:
         """
         resource = self.get_inventory(resource_name)
         resource.price.converge()
-        resource.price.decrease()
 
     def successful_sell(self, resource_name):
         """The Pop will become more confident in its believed price range."""
         resource = self.get_inventory(resource_name)
         resource.price.converge()
-        resource.price.increase()
 
     def failed_buy(self, resource_name):
         """The pop lowers expectations when faced with a failed transaction.
@@ -264,14 +262,12 @@ class Pop:
         """
         clearing_price = self.marketplace.get_clearing_price(resource_name)
         resource = self.get_inventory(resource_name)
-        resource.price.shift_price_if_significant(clearing_price)
         resource.price.diverge()
 
     def failed_sell(self, resource_name):
         """The pop lowers expectations when faced with a failed transaction."""
         clearing_price = self.marketplace.get_clearing_price(resource_name)
         resource = self.get_inventory(resource_name)
-        resource.price.shift_price_if_significant(clearing_price)
         resource.price.diverge()
 
     def measure_profits(self):

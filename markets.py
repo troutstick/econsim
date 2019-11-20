@@ -243,7 +243,8 @@ class Marketplace:
                 self.money_exchanged / self.material_exchanged
                 )
         except ZeroDivisionError:
-            self.clearing_price_list[resource_name] = max(1, self.highest_buy_price)
+            if self.highest_buy_price > self.clearing_price_list[resource_name]:
+                self.clearing_price_list[resource_name] = self.highest_buy_price
 
     def clearing_price_reset(self):
         """used to update clearing prices every day"""
