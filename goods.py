@@ -24,29 +24,38 @@ class Resource:
     def change_amount(self, amount):
         """Change the amount of RESOURCE by an integer AMOUNT."""
         assert isinstance(amount, int), "Can only have whole numbers of resources"
-        if -amount >= self.amount:
+        if -amount > self.amount:
             raise ResourceException("Resource amount can't go below 0")
         self.amount += amount
+
+    #########################
+    # Resource Types
+    #########################
 
 class Rocket(Resource):
     """An example resource."""
     name = 'Rocket'
-    def __init__(self, amount):
-        Resource.__init__(self, amount)
 
 class Food(Resource):
     name = 'Food'
-    def __init__(self, amount):
-        Resource.__init__(self, amount)
+
+class Tool(Resource):
+    name = 'Tool'
+
+class Wood(Resource):
+    name = 'Wood'
+
+class Iron(Resource):
+    name = 'Iron'
 
 class ResourceException(Exception):
     pass
 
-    #########################
-    # Logic for changing one type of resource into another
-    #########################
+implemented = [Food, Tool, Wood, Iron]
 
-implemented = [Rocket, Food]
+    #########################
+    # Prices
+    #########################
 
 class Price:
     """Models the expected prices of various resources by a Pop.
@@ -62,6 +71,9 @@ class Price:
         self.upper = start_price * 1.5 # the two price bounds
         self.lower = start_price * 0.5
         self.keep_min_price()
+
+    def __repr__(self):
+        return f"{self.resource}: ${self.lower}-${self.upper}"
 
     #########################
     # Interfacing
@@ -112,3 +124,11 @@ class Price:
         self.upper += shift
         self.lower -= shift
         self.keep_min_price()
+
+    def increase(self):
+        self.upper *= 1 + self.convergence_rate
+        self.lower *= 1 + self.convergence_rate
+
+    def decrease(self):
+        self.upper *= 1 - self.convergence_rate
+        self.lower *= 1 - self.convergence_rate

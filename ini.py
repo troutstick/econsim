@@ -13,15 +13,21 @@ ids = name_gen.id_generator()
 
 rocketeer = pops.Rocketeer
 rocket_eater = pops.Rocket_eater
+farmer = pops.Farmer
+miner = pops.Miner
+woodcutter = pops.Woodcutter
+blacksmith = pops.Blacksmith
 r = random.randint
 
 #bob = rocketeer('Bob', 100)
 
-rocketeers = [rocketeer(next(names), r(0, 1000), next(ids)) for _ in range(20)]
-rocket_eaters = [rocket_eater(next(names), r(0, 1000), next(ids)) for _ in range(20)]
+farmers = [farmer(next(names), r(0, 1000), next(ids)) for _ in range(20)]
+miners = [miner(next(names), r(0, 1000), next(ids)) for _ in range(20)]
+woodcutters = [woodcutter(next(names), r(0, 1000), next(ids)) for _ in range(5)]
+smiths = [blacksmith(next(names), r(0, 1000), next(ids)) for _ in range(2)]
 
 
-agents = rocketeers + rocket_eaters
+agents = farmers + miners + woodcutters + smiths
 market = markets.Marketplace('London', agents)
 earth = gamelogic.World([market])
 s = earth.simulate

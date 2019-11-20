@@ -169,20 +169,31 @@ class Marketplace:
         resource_sell_list.sort(key=transaction_key)
         supply = len(resource_sell_list)
         demand = len(resource_buy_list)
-        print(f'{resource_name} supply: {supply}')
-        print(f'{resource_name} demand: {demand}')
+        print(f'{resource_name} Sellers: {supply}')
+        print(f'{resource_name} Buyers: {demand}')
         self.demand_supply_ratio = sqrt(demand / max(supply, 1))
 
         try:
             while resource_buy_list and resource_sell_list:
-                perform_transaction(self, resource_buy_list.pop(0), resource_sell_list.pop(0))
-            for buy in resource_buy_list:
-                buy.bidder.failed_buy(resource_name)
-            for sell in resource_sell_list:
-                sell.bidder.failed_sell(resource_name)
-            return
+                first_buy = resource_buy_list[0]
+                first_sell = resource_sell_list[0]
+                perform_transaction(self, first_buy, first_sell)
+                if first_buy.amount <= 0:
+                    first_buy.bidder.successful_buy(resource_name)
+                    resource_buy_list.pop(0)
+                if first_sell.amount <= 0:
+                    first_sell.bidder.successful_sell(resource_name)
+                    resource_sell_list.pop(0)
+            self.punish_failed_transactions(resource_name, resource_buy_list, resource_sell_list)
         except NoTransactionException:
-            return
+            self.punish_failed_transactions(resource_name, resource_buy_list, resource_sell_list)
+
+    def punish_failed_transactions(self, resource_name, buy_list, sell_list):
+        """All who failed to buy/sell are handled accordingly."""
+        for buy in buy_list:
+            buy.bidder.failed_buy(resource_name)
+        for sell in sell_list:
+            sell.bidder.failed_sell(resource_name)
 
     def market_reset(self):
         """Resets stuff for a new trading round."""
@@ -274,10 +285,12 @@ def perform_transaction(marketplace, buy, sell):
         print(f"{buyer.name} bought {resource_amount} {resource_name} from {seller.name} for only {clearing_price} each!")
 
         buyer.exchange(resource_name, resource_amount, -total_price)
-        buyer.successful_buy(resource_name)
         seller.exchange(resource_name, -resource_amount, total_price)
-        seller.successful_sell(resource_name)
         marketplace.exchange(resource_name, resource_amount, total_price)
+
+        buy.amount -= resource_amount
+        sell.amount -= resource_amount
+
     else:
         buyer.failed_buy(resource_name) # all outstanding bids also receive this
         seller.failed_sell(resource_name)
