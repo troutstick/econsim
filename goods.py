@@ -61,7 +61,7 @@ class Price:
     """Models the expected prices of various resources by a Pop.
     Maybe it should be an attribute of a resource? Yes."""
 
-    min_price = 0.01
+    min_price = 1.0
     convergence_rate = 0.05
     significance = 0.25 # price diff is significant if more than 25 percent
 

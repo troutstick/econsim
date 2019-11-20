@@ -295,7 +295,7 @@ class Farmer(Pop):
     job = 'Farmer'
     def config_pop(self):
         self.inventory = {}
-        self.inventory['Food'] = goods.Food(0)
+        self.inventory['Food'] = goods.Food(1)
         self.inventory['Tool'] = goods.Tool(1)
         self.inventory['Wood'] = goods.Wood(4)
         self.inventory['Iron'] = goods.Iron(0)
@@ -307,18 +307,18 @@ class Farmer(Pop):
         self.desires['Iron'] = 0
 
     def produce(self):
-        tool_amount = self.get_inventory_amount('Tool')
-        wood_amount = self.get_inventory_amount('Wood')
-        if wood_amount and tool_amount:
-            self.add_to_inventory('Food', 4)
-            self.add_to_inventory('Wood', -1)
-            if random.random() < 0.1:
-                self.add_to_inventory('Tool', -1)
-        elif wood_amount:
-            self.add_to_inventory('Food', 2)
-            self.add_to_inventory('Wood', -1)
-        else:
-            self.add_cash(-2)
+        eat_food(self)
+        if not self.marketplace.famine:
+            tool_amount = self.get_inventory_amount('Tool')
+            wood_amount = self.get_inventory_amount('Wood')
+            if wood_amount and tool_amount:
+                self.add_to_inventory('Food', 4)
+                self.add_to_inventory('Wood', -1)
+                if random.random() < 0.1:
+                    self.add_to_inventory('Tool', -1)
+            elif wood_amount:
+                self.add_to_inventory('Food', 2)
+                self.add_to_inventory('Wood', -1)
 
 class Miner(Pop):
     """Mines for iron."""
@@ -338,12 +338,13 @@ class Miner(Pop):
     def produce(self):
         eat_food(self)
         tool_amount = self.get_inventory_amount('Tool')
-        if tool_amount:
-            self.add_to_inventory('Iron', 4)
-            if random.random() < 0.1:
-                self.add_to_inventory('Tool', -1)
-        else:
-            self.add_to_inventory('Iron', 2)
+        if not self.marketplace.earthquake:
+            if tool_amount:
+                self.add_to_inventory('Iron', 4)
+                if random.random() < 0.1:
+                    self.add_to_inventory('Tool', -1)
+            else:
+                self.add_to_inventory('Iron', 2)
 
 class Woodcutter(Pop):
     job = 'Woodcutter'
@@ -363,11 +364,10 @@ class Woodcutter(Pop):
     def produce(self):
         eat_food(self)
         tool_amount = self.get_inventory_amount('Tool')
-        if tool_amount:
-            self.add_to_inventory('Wood', 2)
-        else:
+        if tool_amount and not self.marketplace.wildfire:
             self.add_to_inventory('Wood', 1)
-
+        else:
+            return
 
 class Blacksmith(Pop):
     job = 'Blacksmith'
