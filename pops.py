@@ -107,9 +107,10 @@ class Pop:
         """Returns the amount of a resource is in the inventory."""
         return self.get_inventory(resource_name).amount
 
-    def get_expected_price(self, resource_name):
-        """Looks up the Pop's expectations for a resource's price."""
-        return self.goods_prices.get(resource_name)
+    def get_random_price(self, resource_name):
+        """Looks up the Pop's expectations for a resource's price, between
+        its upper and lower bounds."""
+        return self.inventory[resource_name].price.get_price()
 
     def get_desired_amount(self, resource_name):
         """Looks up the pop's desired amount of RESOURCE."""
@@ -141,7 +142,9 @@ class Pop:
     def change_marketplace(self, marketplace):
         """Pop changes marketplace and sets up prices to match."""
         self.marketplace = marketplace
-        """Need to have them set up their prices"""
+        for resource_name, resource in self.inventory.items():
+            start_price = marketplace.get_clearing_price(resource_name)
+            resource.price = goods.Price(resource, start_price)
 
     ###################################################
 
@@ -181,7 +184,7 @@ class Pop:
         """Returns an offer to buy a good at the marketplace.
         Pop will buy goods that cost at most BID_PRICE, but will happily buy at lower price.
         """
-        bid_price = self.get_expected_price(resource_name)
+        bid_price = self.get_random_price(resource_name)
         desired_buy_amount = self.amount_to_buy(resource_name)
         max_buy_amount = int(self.money // bid_price) + 1
         buy_amount = min(desired_buy_amount, max_buy_amount)
@@ -197,7 +200,7 @@ class Pop:
         """Returns an offer to sell a good at the marketplace.
         Pop will sell goods for at least BID_PRICE, but will happily sell at higher price.
         """
-        bid_price = self.get_expected_price(resource_name)
+        bid_price = self.get_random_price(resource_name)
         sell_amount = self.amount_to_sell(resource_name)
         if sell_amount < 1:
             return
@@ -232,31 +235,35 @@ class Pop:
     def update_price_belief(self, resource_name, demand_supply_ratio):
         """Method to update the prices that the pop expects to encounter in its marketplace."""
         clearing_price = self.marketplace.get_clearing_price(resource_name)
-        expected_price = self.get_expected_price(resource_name)
-        diff = clearing_price - expected_price
-        self.goods_prices[resource_name] += (diff * random.random())
+        resource = self.get_inventory(resource_name)
+        resource.price.shift_price_if_significant(clearing_price)
 
     def successful_buy(self, resource_name):
         """The Pop will try to negotiate for a lower price next time.
         WIP — the pop should be less aggressive with more experience in the market.
         """
-        print('fix me')
-        #self.goods_prices[resource_name] *= random.uniform(0.95, 1.0)
+        resource = self.get_inventory(resource_name)
+        resource.price.converge()
 
     def successful_sell(self, resource_name):
-        """The Pop will try to negotiate for a higher price next time."""
-        print('fix me')
-        #self.goods_prices[resource_name] *= random.uniform(1.0, 1.05)
+        """The Pop will become more confident in its believed price range."""
+        resource = self.get_inventory(resource_name)
+        resource.price.converge()
 
     def failed_buy(self, resource_name):
         """The pop lowers expectations when faced with a failed transaction.
         It will try to buy goods at a higher price in the future.
+        (This means it attempts to shift price a 2nd time.)
         """
-        self.goods_prices[resource_name] *= random.uniform(1.0, 1.1)
+        resource = self.get_inventory(resource_name)
+        resource.price.shift_price_if_significant(clearing_price)
+        resource.price.diverge()
 
     def failed_sell(self, resource_name):
         """The pop lowers expectations when faced with a failed transaction."""
-        self.goods_prices[resource_name] *= random.uniform(0.9, 1.0)
+        resource = self.get_inventory(resource_name)
+        resource.price.shift_price_if_significant(clearing_price)
+        resource.price.diverge()
 
     def measure_profits(self):
         """The pop sees how much money it made (or didn't make) in the last trading round."""

@@ -129,9 +129,9 @@ class Marketplace:
         for resource_name in self.allowed_resources:
             self.resolve_for_resource(resource_name)
             self.update_clearing_price(resource_name)
-            print(f'clearing prices: {self.clearing_price_list}')
             self.adjust_agents(resource_name)
             self.clearing_price_reset()
+        print(f'clearing prices: {self.clearing_price_list}')
         self.market_reset()
 
     def measure_profits(self):
