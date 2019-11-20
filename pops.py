@@ -255,12 +255,14 @@ class Pop:
         It will try to buy goods at a higher price in the future.
         (This means it attempts to shift price a 2nd time.)
         """
+        clearing_price = self.marketplace.get_clearing_price(resource_name)
         resource = self.get_inventory(resource_name)
         resource.price.shift_price_if_significant(clearing_price)
         resource.price.diverge()
 
     def failed_sell(self, resource_name):
         """The pop lowers expectations when faced with a failed transaction."""
+        clearing_price = self.marketplace.get_clearing_price(resource_name)
         resource = self.get_inventory(resource_name)
         resource.price.shift_price_if_significant(clearing_price)
         resource.price.diverge()
@@ -290,7 +292,7 @@ class Rocketeer(Pop):
 
     def produce_rocket(self):
         """An example function. Add one to rocket amount."""
-        self.add_to_inventory('Rocket', 4)
+        self.add_to_inventory('Rocket', 1)
 
     def produce(self):
         """The pop produces/consumes material."""

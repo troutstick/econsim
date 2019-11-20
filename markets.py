@@ -19,8 +19,8 @@ class Marketplace:
 
         self.rolling_avg_window = 10
 
-        self.agents_config()
         self.allowed_resources_config() # creates list of all resources that can be traded here
+        self.agents_config()
         self.market_reset() # prepare for new trading round
 
     def __repr__(self):
@@ -167,10 +167,10 @@ class Marketplace:
         resource_sell_list = [sell for sell in self.sell_list if sell.resource_name == resource_name]
         resource_buy_list.sort(key=transaction_key, reverse=True) # buys are sorted in descending order
         resource_sell_list.sort(key=transaction_key)
-        print(resource_buy_list)
-        print(resource_sell_list)
         supply = len(resource_sell_list)
         demand = len(resource_buy_list)
+        print(f'{resource_name} supply: {supply}')
+        print(f'{resource_name} demand: {demand}')
         self.demand_supply_ratio = sqrt(demand / max(supply, 1))
 
         try:

@@ -1,4 +1,5 @@
 import markets
+import random
 
     #########################
     # Resources
@@ -77,17 +78,17 @@ class Price:
 
     def get_price(self):
         """Return a number between the upper and lower bounds."""
-        return random.uniform(self.lower, self.higher)
+        return random.uniform(self.lower, self.upper)
 
     def get_average(self):
         return (self.upper + self.lower) / 2
 
     def shift_price_if_significant(self, target_price):
         """Will shift price only if difference is significant."""
-        curr_price = get_average(self)
+        curr_price = self.get_average()
         percent_diff = (2 * abs(curr_price - target_price)) / (curr_price + target_price)
-        if significance < percent_diff:
-            shift_price(self, curr_price, target_price)
+        if self.significance < percent_diff:
+            self.shift_price(curr_price, target_price)
 
     def shift_price(self, curr_price, target_price):
         """Price bounds are shifted towards the target_price."""
@@ -98,7 +99,7 @@ class Price:
 
     def converge(self):
         """Price bounds shift towards mean"""
-        curr_price = get_average(self)
+        curr_price = self.get_average()
         shift = curr_price * self.convergence_rate
         self.upper -= shift
         self.lower += shift
@@ -106,8 +107,8 @@ class Price:
 
     def diverge(self):
         """Price bounds shift away from mean"""
-        curr_price = get_average(self)
+        curr_price = self.get_average()
         shift = curr_price * self.convergence_rate
         self.upper += shift
         self.lower -= shift
-        keep_min_price()
+        self.keep_min_price()
