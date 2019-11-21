@@ -43,16 +43,14 @@ class Pop:
         """Default setup. WIP."""
         self.inventory = {}
         for resource in goods.implemented:
-            self.inventory[resource.name] = resource(10)
+            self.inventory[resource.name] = resource(1)
 
     def config_mental_state(self):
         """Function that sets up the Pop's attitudes towards things.
         Essentially part of the pop's mental state and should not be accessed by others.
         """
-        names = [resource.name for resource in goods.implemented]
 
         self.desires = {}
-        self.goods_prices = {} # expected prices for every resource according to the pop
         """Prices should be a dictionary with a key pointing to two numbers?
         Or some kind of object with two attributes.
         CONSIDER CREATING A CLASS FOR THIS
@@ -62,9 +60,12 @@ class Pop:
         self.buy_success = {} # history of buys; used to determine expected prices
         self.sell_success = {}
 
+        self.config_desires()
+
+    def config_desires(self):
+        names = [resource.name for resource in goods.implemented]
         for n in names:
             self.desires[n] = 10
-            self.goods_prices[n] = 1 # expected prices for every resource according to the pop
             self.buy_success[n] = 0 # history of buys; used to determine expected prices
             self.sell_success[n] = 0
 
@@ -81,9 +82,10 @@ class Pop:
         print(f"marketplace: {self.marketplace}")
         print(f"inventory: {self.inventory}")
         print(f"desires: {self.desires}")
-        print(f"goods_prices: {self.goods_prices}")
-        print(f"buy_success: {self.buy_success}")
-        print(f"sell_success: {self.sell_success}")
+        for resource in goods.implemented:
+            self.get_expected_price(resource.name)
+        # print(f"buy_success: {self.buy_success}")
+        # print(f"sell_success: {self.sell_success}")
 
     def add_to_inventory(self, resource_name, amount):
         """A function that adds/subtracts an AMOUNT of RESOURCE from the inventory."""
@@ -112,6 +114,9 @@ class Pop:
         its upper and lower bounds."""
         return self.inventory[resource_name].price.get_price()
 
+    def get_expected_price(self, resource_name):
+        print(self.inventory[resource_name].price)
+
     def get_desired_amount(self, resource_name):
         """Looks up the pop's desired amount of RESOURCE."""
         return self.desires.get(resource_name)
@@ -126,9 +131,8 @@ class Pop:
             if job_name != self.job:
                 agent_type = [agent_type for agent_type in pop_types if agent_type.job == job_name].pop(0)
                 new_instance = agent_type(self.name, self.money, self.id)
-                new_instance.goods_prices = self.goods_prices
                 new_instance.inventory = self.inventory
-                new_instance.pennilessness -= 5
+                new_instance.pennilessness = 0
                 print(f'{self.name}: {self.job} -> {new_instance.job}')
                 self.marketplace.replace_agent(self, new_instance)
 
@@ -136,8 +140,9 @@ class Pop:
         """Penniless counter is increased to measure bankruptcy."""
         self.pennilessness += 1
         if self.pennilessness > self.bankruptcy_threshold:
+            if not self.bankrupt:
+                print(f"{self.name} goes bankrupt!")
             self.bankrupt = True
-            print(f"{self.name} goes bankrupt!")
 
     def change_marketplace(self, marketplace):
         """Pop changes marketplace and sets up prices to match."""
@@ -255,14 +260,14 @@ class Pop:
         It will try to buy goods at a higher price in the future.
         (This means it attempts to shift price a 2nd time.)
         """
+        clearing_price = self.marketplace.get_clearing_price(resource_name)
         resource = self.get_inventory(resource_name)
-        resource.price.shift_price_if_significant(clearing_price)
         resource.price.diverge()
 
     def failed_sell(self, resource_name):
         """The pop lowers expectations when faced with a failed transaction."""
+        clearing_price = self.marketplace.get_clearing_price(resource_name)
         resource = self.get_inventory(resource_name)
-        resource.price.shift_price_if_significant(clearing_price)
         resource.price.diverge()
 
     def measure_profits(self):
@@ -281,28 +286,129 @@ class Pop:
         Maybe they have more actions or something.
         """
 
+class Farmer(Pop):
+    """Uses wood and tools to make food."""
+    job = 'Farmer'
+    def config_pop(self):
+        self.inventory = {}
+        self.inventory['Food'] = goods.Food(1)
+        self.inventory['Tool'] = goods.Tool(1)
+        self.inventory['Wood'] = goods.Wood(4)
+        self.inventory['Iron'] = goods.Iron(0)
 
+    def config_desires(self):
+        self.desires['Food'] = 0
+        self.desires['Tool'] = 2
+        self.desires['Wood'] = 5
+        self.desires['Iron'] = 0
+
+    def produce(self):
+        eat_food(self)
+        if not self.marketplace.famine:
+            tool_amount = self.get_inventory_amount('Tool')
+            wood_amount = self.get_inventory_amount('Wood')
+            if wood_amount and tool_amount:
+                self.add_to_inventory('Food', 4)
+                self.add_to_inventory('Wood', -1)
+                if random.random() < 0.1:
+                    self.add_to_inventory('Tool', -1)
+            elif wood_amount:
+                self.add_to_inventory('Food', 2)
+                self.add_to_inventory('Wood', -1)
+
+class Miner(Pop):
+    """Mines for iron."""
+    job = 'Miner'
+    def config_pop(self):
+        self.inventory = {}
+        self.inventory['Food'] = goods.Food(5)
+        self.inventory['Tool'] = goods.Tool(1)
+        self.inventory['Wood'] = goods.Wood(0)
+        self.inventory['Iron'] = goods.Iron(0)
+    def config_desires(self):
+        self.desires['Food'] = 10
+        self.desires['Tool'] = 2
+        self.desires['Wood'] = 5
+        self.desires['Iron'] = 0
+
+    def produce(self):
+        eat_food(self)
+        tool_amount = self.get_inventory_amount('Tool')
+        if not self.marketplace.earthquake:
+            if tool_amount:
+                self.add_to_inventory('Iron', 4)
+                if random.random() < 0.1:
+                    self.add_to_inventory('Tool', -1)
+            else:
+                self.add_to_inventory('Iron', 2)
+
+class Woodcutter(Pop):
+    job = 'Woodcutter'
+    def config_pop(self):
+        self.inventory = {}
+        self.inventory['Food'] = goods.Food(5)
+        self.inventory['Tool'] = goods.Tool(1)
+        self.inventory['Wood'] = goods.Wood(0)
+        self.inventory['Iron'] = goods.Iron(0)
+
+    def config_desires(self):
+        self.desires['Food'] = 10
+        self.desires['Tool'] = 2
+        self.desires['Wood'] = 0
+        self.desires['Iron'] = 0
+
+    def produce(self):
+        eat_food(self)
+        tool_amount = self.get_inventory_amount('Tool')
+        if tool_amount and not self.marketplace.wildfire:
+            self.add_to_inventory('Wood', 1)
+        else:
+            return
+
+class Blacksmith(Pop):
+    job = 'Blacksmith'
+
+    def config_pop(self):
+        self.inventory = {}
+        self.inventory['Food'] = goods.Food(5)
+        self.inventory['Tool'] = goods.Tool(0)
+        self.inventory['Wood'] = goods.Wood(0)
+        self.inventory['Iron'] = goods.Iron(5)
+
+    def config_desires(self):
+        self.desires['Food'] = 10
+        self.desires['Tool'] = 0
+        self.desires['Wood'] = 0
+        self.desires['Iron'] = 10
+
+    def produce(self):
+        def smith_tools():
+            """An example function."""
+            k = 0
+            while self.get_inventory_amount('Iron') > 1:
+                self.add_to_inventory('Iron', -1)
+                self.add_to_inventory('Tool', 1)
+                k += 1
+            if k > 0:
+                print(f'{self.name} made {k} Tool')
+        eat_food(self)
+        smith_tools()
 
 class Rocketeer(Pop):
     """Makes rockets"""
-
     job = 'Rocketeer'
-
     def produce_rocket(self):
         """An example function. Add one to rocket amount."""
-        self.add_to_inventory('Rocket', 4)
+        self.add_to_inventory('Rocket', 1)
 
     def produce(self):
         """The pop produces/consumes material."""
         eat_food(self)
         self.produce_rocket()
 
-
 class Rocket_eater(Pop):
     """Consumes rockets; makes food from rockets"""
-
     job = 'Rocket_eater'
-
     def eat_rocket(self):
         """An example function."""
         k = 0
@@ -327,8 +433,7 @@ def eat_food(agent):
     try:
         agent.add_to_inventory('Food', -1)
     except goods.ResourceException:
-        agent.goods_prices['Food'] *= random.uniform(1.0, 1.2)
-        agent.penniless()
+        agent.add_cash(-2)
 
 # shows all jobs
-pop_types = [Rocketeer, Rocket_eater]
+pop_types = [Farmer, Miner, Woodcutter, Blacksmith]

@@ -19,8 +19,9 @@ class Marketplace:
 
         self.rolling_avg_window = 10
 
-        self.agents_config()
+        self.disasters_config()
         self.allowed_resources_config() # creates list of all resources that can be traded here
+        self.agents_config()
         self.market_reset() # prepare for new trading round
 
     def __repr__(self):
@@ -45,6 +46,12 @@ class Marketplace:
         self.allowed_resources = [r.name for r in goods.implemented]
         for resource in goods.implemented:
             self.clearing_price_list[resource.name] = 4 # each resource's clearing price at this market
+
+    def disasters_config(self):
+        """Disasters halt production of certain goods."""
+        self.famine = False
+        self.earthquake = False
+        self.wildfire = False
 
     #########################
     # Interfaces to interact with marketplace
@@ -107,6 +114,12 @@ class Marketplace:
 
     def simulate(self):
         """The invisible hand of the free market simulates the passing of a day."""
+        if self.famine:
+            print('Famine! No food!')
+        if self.wildfire:
+            print('Wildfire! No wood!')
+        if self.earthquake:
+            print('Earthquake! No iron!')
         self.perform_production()
         self.generate_offers()
         self.resolve_offers()
@@ -167,22 +180,41 @@ class Marketplace:
         resource_sell_list = [sell for sell in self.sell_list if sell.resource_name == resource_name]
         resource_buy_list.sort(key=transaction_key, reverse=True) # buys are sorted in descending order
         resource_sell_list.sort(key=transaction_key)
-        print(resource_buy_list)
-        print(resource_sell_list)
         supply = len(resource_sell_list)
         demand = len(resource_buy_list)
+        print(f'{resource_name} Sellers: {supply}')
+        print(f'{resource_name} Buyers: {demand}')
         self.demand_supply_ratio = sqrt(demand / max(supply, 1))
 
+        self.highest_buy_price = 0
+        if resource_buy_list:
+            self.highest_buy_price = resource_buy_list[0].bid_price
+
         try:
+            k = 0
             while resource_buy_list and resource_sell_list:
-                perform_transaction(self, resource_buy_list.pop(0), resource_sell_list.pop(0))
-            for buy in resource_buy_list:
-                buy.bidder.failed_buy(resource_name)
-            for sell in resource_sell_list:
-                sell.bidder.failed_sell(resource_name)
-            return
+                first_buy = resource_buy_list[0]
+                first_sell = resource_sell_list[0]
+                perform_transaction(self, first_buy, first_sell)
+                k += 1
+                if first_buy.amount <= 0:
+                    first_buy.bidder.successful_buy(resource_name)
+                    resource_buy_list.pop(0)
+                if first_sell.amount <= 0:
+                    first_sell.bidder.successful_sell(resource_name)
+                    resource_sell_list.pop(0)
+            self.punish_failed_transactions(resource_name, resource_buy_list, resource_sell_list)
+            print(f"{k} transactions made")
         except NoTransactionException:
-            return
+            print(f"{k} transactions made")
+            self.punish_failed_transactions(resource_name, resource_buy_list, resource_sell_list)
+
+    def punish_failed_transactions(self, resource_name, buy_list, sell_list):
+        """All who failed to buy/sell are handled accordingly."""
+        for buy in buy_list:
+            buy.bidder.failed_buy(resource_name)
+        for sell in sell_list:
+            sell.bidder.failed_sell(resource_name)
 
     def market_reset(self):
         """Resets stuff for a new trading round."""
@@ -204,18 +236,22 @@ class Marketplace:
 
     def update_clearing_price(self, resource_name):
         """Updates the average price per unit of material sold during a trading round."""
+        print(f"{resource_name} exchanged: {self.material_exchanged}")
+        print(f"Money exchanged: ${self.money_exchanged}")
         try:
             self.clearing_price_list[resource_name] = (
                 self.money_exchanged / self.material_exchanged
                 )
         except ZeroDivisionError:
-            return
+            if self.highest_buy_price > self.clearing_price_list[resource_name]:
+                self.clearing_price_list[resource_name] = self.highest_buy_price
 
     def clearing_price_reset(self):
         """used to update clearing prices every day"""
         self.material_exchanged = 0
         self.money_exchanged = 0
         self.demand_supply_ratio = 1
+        self.highest_buy_price = 0
 
     def add_bid(self, bid):
         """Adds a buy or sell bid to the marketplace."""
@@ -271,17 +307,18 @@ def perform_transaction(marketplace, buy, sell):
         clearing_price = (buy.bid_price + sell.bid_price) / 2
         total_price = resource_amount * clearing_price
 
-        print(f"{buyer.name} bought {resource_amount} {resource_name} from {seller.name} for only {clearing_price} each!")
+        #print(f"{buyer.name} bought" +
+        #f" {resource_amount} {resource_name} from {seller.name} for only {clearing_price} each!")
 
         buyer.exchange(resource_name, resource_amount, -total_price)
-        buyer.successful_buy(resource_name)
         seller.exchange(resource_name, -resource_amount, total_price)
-        seller.successful_sell(resource_name)
         marketplace.exchange(resource_name, resource_amount, total_price)
+
+        buy.amount -= resource_amount
+        sell.amount -= resource_amount
+
     else:
-        buyer.failed_buy(resource_name) # all outstanding bids also receive this
-        seller.failed_sell(resource_name)
-        print(f'{buyer.name} and {seller.name} unable to agree to a deal.')
+        #print(f'{buyer.name} and {seller.name} unable to agree to a deal.')
         raise NoTransactionException('no transaction')
 
         #class Lower_Class(Pop):
