@@ -204,9 +204,9 @@ class Marketplace:
                     first_sell.bidder.successful_sell(resource_name)
                     resource_sell_list.pop(0)
             self.punish_failed_transactions(resource_name, resource_buy_list, resource_sell_list)
-            print(f"{k} transactions made")
+            print(f"{k} {resource_name} transactions made")
         except NoTransactionException:
-            print(f"{k} transactions made")
+            print(f"{k} {resource_name} transactions made")
             self.punish_failed_transactions(resource_name, resource_buy_list, resource_sell_list)
 
     def punish_failed_transactions(self, resource_name, buy_list, sell_list):

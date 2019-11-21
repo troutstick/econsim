@@ -21,10 +21,10 @@ r = random.randint
 
 #bob = rocketeer('Bob', 100)
 
-farmers = [farmer(next(names), r(0, 100), next(ids)) for _ in range(20)]
-miners = [miner(next(names), r(0, 100), next(ids)) for _ in range(10)]
-woodcutters = [woodcutter(next(names), r(0, 100), next(ids)) for _ in range(15)]
-smiths = [blacksmith(next(names), r(0, 100), next(ids)) for _ in range(2)]
+farmers = [farmer(next(names), r(0, 100), next(ids)) for _ in range(200)]
+miners = [miner(next(names), r(0, 100), next(ids)) for _ in range(100)]
+woodcutters = [woodcutter(next(names), r(0, 100), next(ids)) for _ in range(150)]
+smiths = [blacksmith(next(names), r(0, 100), next(ids)) for _ in range(20)]
 
 
 agents = farmers + miners + woodcutters + smiths
