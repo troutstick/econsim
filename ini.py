@@ -33,4 +33,14 @@ earth = gamelogic.World([market])
 s = earth.simulate
 r = market.report_all
 p = market.agent_population
-print("Use s(time) to simulate, and r() to get reports from agents in the market")
+most = market.most_profitable
+
+famine = market.famine_config
+earthquake = market.earthquake_config
+wildfire = market.wildfire_config
+
+print("Use s(time) to simulate.")
+print("Use r() to get reports from agents in the market")
+print("Use p() to get market population")
+print("Use most() to get most profitable job")
+print("Set natural disasters with famine(), earthquake(), or wildfire()")
