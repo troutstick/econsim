@@ -141,6 +141,7 @@ class Marketplace:
     def perform_production(self):
         """Various resources are produced/consumed."""
         for agent in self.agents:
+            agent.previous_money = agent.money
             agent.produce()
 
     def generate_offers(self):

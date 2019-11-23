@@ -39,8 +39,15 @@ famine = market.famine_config
 earthquake = market.earthquake_config
 wildfire = market.wildfire_config
 
+def richest():
+    return max(market.agents, key=lambda a: a.money + a.report_assets())
+
+def poorest():
+    return min(market.agents, key=lambda a: a.money + a.report_assets())
+
 print("Use s(time) to simulate.")
 print("Use r() to get reports from agents in the market")
 print("Use p() to get market population")
 print("Use most() to get most profitable job")
 print("Set natural disasters with famine(), earthquake(), or wildfire()")
+print("Find who made it big (and who didn't) with richest() and poorest()")
