@@ -1,0 +1,29 @@
+{
+    "first": [
+        "bob", "harold", "mark", "richard", "ken", "beatrice", "blazer",
+        "pax", "madeleine", "jasper", "hodor", "periwinkle", "victoria", "sophia",
+        "sophie", "ryan", "samuel", "jesus", "josephine", "harold", "reginald",
+        "steve", "george", "doctorpastor", "jeb", "william", "irene", "penny",
+        "jennifer", "jenny", "ashley", "alexander", "alex", "violet", "phineas",
+        "rocketeater", "rocketeer", "capitalist", "trinity", "dallas", "ernst",
+        "roland", "alexa", "julia", "thomas", "james", "kyle", "john", "margaret",
+        "lisa", "anna", "patrick", "mark", "data", "tree"
+    ],
+    "middle": [
+        "alexandros", "druci", "levon", "liechtensteiner", "panera",
+        "udica", "haggis", "h.", "addison", "bartholomew", "brainiac",
+        "tuna", "america", "georgium", "mettaton", "henrietta", "rip",
+        "sanic", "bionicle", "histogram", "braintuna", "unicorn",
+        "yves", "anakin", "cobra", "capitalism", "backspace", "randint",
+        "crab", "kale", "java", "thor", "fitzpatrick", "frito-lay",
+        "oedipus", "thomas", "linked-list", "juvenile", "qwerty"
+    ],
+    "last": [
+        "maxwell", "green", "python", "anderson", "peters", "piggalonius",
+        "ainsley", "tyler", "ross", "fernley", "zimmer", "reynolds", "samson",
+        "oppenheimer", "miller", "baker", "nakamura", "wang", "biggs", "master",
+        "black", "smith", "white", "single", "daniels", "andrews", "myers",
+        "schmidt", "mason", "jobs", "ping", "bacon", "moore", "caesar", "king",
+        "thomas", "page"
+    ]
+}
