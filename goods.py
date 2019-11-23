@@ -1,9 +1,9 @@
 import markets
 import random
 
-    #########################
-    # Resources
-    #########################
+#########################
+# Resources
+#########################
 
 class Resource:
     """Class that represents all the commodities handled by the agents."""
@@ -53,9 +53,9 @@ class ResourceException(Exception):
 
 implemented = [Food, Tool, Wood, Iron]
 
-    #########################
-    # Prices
-    #########################
+#########################
+# Prices
+#########################
 
 class Price:
     """Models the expected prices of various resources by a Pop.

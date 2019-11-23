@@ -211,7 +211,7 @@ class Pop:
             return
         return markets.Sell(self, resource_name, bid_price, sell_amount)
 
-#amount_to_buy and amount_to_buy reference unimplemented variables
+    #amount_to_buy and amount_to_buy reference unimplemented variables
 
     def amount_to_buy(self, resource_name):
         """Return how much of RESOURCE that the pop wants to buy.
