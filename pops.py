@@ -75,9 +75,12 @@ class Pop:
 
     def report(self):
         """Print various things."""
+        assets = self.report_assets()
         print(f"name: {self.name}")
         print(f"job: {self.job}")
         print(f"money: ${self.money}")
+        print(f"total assets: ${assets}")
+        print(f"net worth: ${self.money + assets}")
         print(f"today's profit: ${self.daily_profit}")
         # print(f"marketplace: {self.marketplace}")
         print(f"inventory: {[item for item in self.inventory.values()]}")
@@ -86,6 +89,14 @@ class Pop:
             self.get_expected_price(resource.name)
         # print(f"buy_success: {self.buy_success}")
         # print(f"sell_success: {self.sell_success}")
+
+    def report_assets(self):
+        """Returns value of inventory based on clearing price."""
+        def assets(resource_name):
+            price = self.marketplace.get_clearing_price(resource_name)
+            amount = self.get_inventory_amount(resource_name)
+            return price * amount
+        return sum([assets(r.name) for r in goods.implemented])
 
     def add_to_inventory(self, resource_name, amount):
         """A function that adds/subtracts an AMOUNT of RESOURCE from the inventory."""
