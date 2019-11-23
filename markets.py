@@ -53,6 +53,18 @@ class Marketplace:
         self.earthquake = False
         self.wildfire = False
 
+    def famine_config(self):
+        self.famine = not self.famine
+        print(f"Famine set to {self.famine}")
+
+    def earthquake_config(self):
+        self.earthquake = not self.earthquake
+        print(f"Earthquake set to {self.earthquake}")
+
+    def wildfire_config(self):
+        self.wildfire = not self.wildfire
+        print(f"Wildfire set to {self.wildfire}")
+
     #########################
     # Interfaces to interact with marketplace
     #########################

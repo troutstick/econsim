@@ -77,10 +77,10 @@ class Pop:
         """Print various things."""
         print(f"name: {self.name}")
         print(f"job: {self.job}")
-        print(f"money: {self.money}")
-        print(f"recent profit: {self.daily_profit}")
-        print(f"marketplace: {self.marketplace}")
-        print(f"inventory: {self.inventory}")
+        print(f"money: ${self.money}")
+        print(f"today's profit: ${self.daily_profit}")
+        # print(f"marketplace: {self.marketplace}")
+        print(f"inventory: {[item for item in self.inventory.values()]}")
         print(f"desires: {self.desires}")
         for resource in goods.implemented:
             self.get_expected_price(resource.name)
@@ -133,15 +133,15 @@ class Pop:
                 new_instance = agent_type(self.name, self.money, self.id)
                 new_instance.inventory = self.inventory
                 new_instance.pennilessness = 0
-                print(f'{self.name}: {self.job} -> {new_instance.job}')
+                # print(f'{self.name}: {self.job} -> {new_instance.job}')
                 self.marketplace.replace_agent(self, new_instance)
 
     def penniless(self):
         """Penniless counter is increased to measure bankruptcy."""
         self.pennilessness += 1
         if self.pennilessness > self.bankruptcy_threshold:
-            if not self.bankrupt:
-                print(f"{self.name} goes bankrupt!")
+            #if not self.bankrupt:
+            #    print(f"{self.name} goes bankrupt!")
             self.bankrupt = True
 
     def change_marketplace(self, marketplace):
@@ -275,6 +275,14 @@ class Pop:
         self.daily_profit = self.money - self.previous_money
         return self.daily_profit
 
+    def eat_food(self):
+        """Daily food need simulated."""
+        try:
+            self.add_to_inventory('Food', -1)
+        except goods.ResourceException:
+            self.penniless()
+            # maybe try a different way to starve agents
+
         #class Lower_Class(Pop):
         """Represents people in the lower echelons of society."""
 
@@ -303,7 +311,7 @@ class Farmer(Pop):
         self.desires['Iron'] = 0
 
     def produce(self):
-        eat_food(self)
+        self.eat_food()
         if not self.marketplace.famine:
             tool_amount = self.get_inventory_amount('Tool')
             wood_amount = self.get_inventory_amount('Wood')
@@ -332,7 +340,7 @@ class Miner(Pop):
         self.desires['Iron'] = 0
 
     def produce(self):
-        eat_food(self)
+        self.eat_food()
         tool_amount = self.get_inventory_amount('Tool')
         if not self.marketplace.earthquake:
             if tool_amount:
@@ -358,7 +366,7 @@ class Woodcutter(Pop):
         self.desires['Iron'] = 0
 
     def produce(self):
-        eat_food(self)
+        self.eat_food()
         tool_amount = self.get_inventory_amount('Tool')
         if tool_amount and not self.marketplace.wildfire:
             self.add_to_inventory('Wood', 1)
@@ -391,7 +399,7 @@ class Blacksmith(Pop):
                 k += 1
             if k > 0:
                 print(f'{self.name} made {k} Tool')
-        eat_food(self)
+        self.eat_food()
         smith_tools()
 
 class Rocketeer(Pop):
@@ -403,7 +411,7 @@ class Rocketeer(Pop):
 
     def produce(self):
         """The pop produces/consumes material."""
-        eat_food(self)
+        self.eat_food()
         self.produce_rocket()
 
 class Rocket_eater(Pop):
@@ -422,18 +430,12 @@ class Rocket_eater(Pop):
     def produce(self):
         """The pop produces/consumes material."""
         self.eat_rocket()
-        eat_food(self)
+        self.eat_food()
 
     #########################
     # Production
     #########################
 
-def eat_food(agent):
-    """Daily food need simulated."""
-    try:
-        agent.add_to_inventory('Food', -1)
-    except goods.ResourceException:
-        agent.add_cash(-2)
 
 # shows all jobs
 pop_types = [Farmer, Miner, Woodcutter, Blacksmith]
