@@ -7,7 +7,7 @@ to-do:
 * Agent behavior should depend on wealth level
 * Add banking?
 * The world should have multiple marketplaces
-  *Agents travel between them to act as merchants
+  * Agents travel between them to act as merchants
 * Implement dynamic, effective demand elasticity
 * Add ways to better observe world
   * Ways to look at wealth distribution
