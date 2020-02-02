@@ -17,7 +17,7 @@ class Marketplace:
         # each key points to a list with profit values from the previous 10 rounds
         self.sorted_agents = {}
 
-        self.rolling_avg_window = 10
+        self.rolling_avg_window = 10 #number of prev turns to account for in rolling avg 
 
         self.disasters_config()
         self.allowed_resources_config() # creates list of all resources that can be traded here
