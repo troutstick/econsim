@@ -30,3 +30,7 @@ I will try my best to create an economic simulator here. Inspiration from [this 
   * GUI
 * Allow money supply to dynamically grow and shrink
   * Add banking?
+* Rewrite the entire thing in another language
+  * Should be more strongly typed than Python
+
+special thanks to danflapjax, who showed me the wonders of .gitignore >_<
