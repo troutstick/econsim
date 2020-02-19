@@ -5,13 +5,15 @@ package market;
  *  */
 public class Pop {
     private String _name;
-    private int _id;
+    private final int _id;
     private double _money;
-    private Marketplace _marketplace;
-    private boolean _isBankrupt;
 
-    /** Times to warn pop before it's bankrupt. */
+    /* The market this pop trades in. */
+    private Marketplace _marketplace;
+
+    /* Times to warn pop before it's bankrupt. */
     private int _bankruptcyThreshold;
+    private boolean _isBankrupt;
 
     private Inventory _inventory;
 
@@ -25,7 +27,13 @@ public class Pop {
     }
 
     public class Inventory {
+        private Resource[] _resources;
         private Inventory() {
+
+        }
+
+        // how to access elements of inventory?
+        public int getResource(Resource resource) {
 
         }
 
