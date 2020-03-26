@@ -19,9 +19,15 @@ class Inventory implements ResourceHolder<Resource, Integer> {
         return _resources.getOrDefault(resource, 0);
     }
 
-    /** Add AMOUNT of RESOURCE to inventory. */
+    /** Add AMOUNT of RESOURCE to inventory, as long as it is not left with negative amount. */
     @Override
-    public void addResource(Resource resource, Integer amount) {
-        _resources.put(resource, amount + peek(resource));
+    public boolean addResource(Resource resource, Integer amount) {
+        int newAmount = amount + peek(resource);
+        if (newAmount >= 0) {
+            _resources.put(resource, newAmount);
+            return true;
+        } else {
+            return false;
+        }
     }
 }
