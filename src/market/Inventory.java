@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /** Things that a Pop owns, whether they're objects or currencies. */
-class Inventory {
+class Inventory implements ResourceHolder<Resource> {
 
 
 
@@ -16,11 +16,13 @@ class Inventory {
     }
 
     /** Show how much of RESOURCE this inventory contains. */
-    int peek(Resource resource) {
+    @Override
+    public Integer peek(Resource resource) {
         return _resources.getOrDefault(resource, 0);
     }
 
-    void addResource(Resource resource, int amount) {
+    @Override
+    public void addResource(Resource resource, Integer amount) {
         _resources.put(resource, amount + peek(resource));
     }
 }

@@ -3,7 +3,7 @@ package market;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Wallet implements ResourceHolder<Money, Double> {
+public class Wallet implements ResourceHolder<Money> {
 
     /** A wallet contains money. */
     private Map<Money, Double> _wallet;
@@ -14,10 +14,12 @@ public class Wallet implements ResourceHolder<Money, Double> {
 
     /** Show how much of MONEY this wallet contains. */
     @Override
-    Double peek(Money money) {
+    public Double peek(Money money) {
         return _wallet.getOrDefault(money, 0.0);
     }
 
     @Override
-    void addResource(Money money, Double amount)
+    public void addResource(Money money, Double amount) {
+
+    }
 }

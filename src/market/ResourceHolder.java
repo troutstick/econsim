@@ -1,13 +1,13 @@
 package market;
 
 /** A thing that holds resources. */
-interface ResourceHolder <Resource, Amount> {
+interface ResourceHolder <R> {
 
     /** Check inside the holder for how much RESOURCE it contains. */
-    Amount peek(Resource resource);
+    Number peek(R resource);
 
     /** Add AMOUNT to the value of RESOURCE. */
-    void addResource(Resource resource, Amount amount);
+    void addResource(R resource, Number amount);
 
 
 }
