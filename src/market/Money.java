@@ -1,4 +1,5 @@
 package market;
 
-public class Money {
+/** Money can be exchanged (by Pops) for goods and services. */
+enum Money {
 }
