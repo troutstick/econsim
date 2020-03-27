@@ -60,6 +60,11 @@ abstract class Pop {
         }
     }
 
+    /** Set this pop's marketplace to M. */
+    void setMarketplace(Marketplace m) {
+        _marketplace = m;
+    }
+
     static void changeDesire(Resource r, int desire) {
         _desires.put(r, desire);
     }
@@ -72,7 +77,9 @@ abstract class Pop {
     /** The pop will try to buy and sell goods at its marketplace. */
     void produceOffers() {
         for (Resource r : Resource.values()) {
-            // TODO
+            /*  TODO
+            *   Make sure you add offers to marketplace
+            *   */
         }
     }
 }
