@@ -1,6 +1,7 @@
 package market;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,17 +11,19 @@ import java.util.Map;
 public class Pop {
     private final String _NAME;
 
-    /* The market this pop trades in. */
+    /*  The market this pop trades in. */
     private Marketplace _marketplace;
 
-    /* Times to warn pop before it's bankrupt. */
+    /*  Times to warn pop before it's bankrupt. */
     private int _bankruptcyThreshold;
     private boolean _isBankrupt;
 
     private Inventory _inventory;
     private Wallet _wallet;
 
-    /* This Pop's trading history. */
+    /*  This Pop's trading history.
+    *   Maybe should be a queue? Should contain only transactions from recent trading rounds.
+    *   */
     private List<Transaction> _transactions;
     private List<CurrencyTrade> _fxExchanges;
 
@@ -35,20 +38,35 @@ public class Pop {
         _wallet = new Wallet();
         _transactions = new ArrayList<>();
         _fxExchanges = new ArrayList<>();
+        _desires = new HashMap<>();
     }
 
     /** Complete the contents of transaction T. */
     void exchange(Transaction t) {
-        int resourceAmt = t.amountBought();
-        double cashAmt = t.moneyAmount();
-        if (t._buyer.equals(this)) {
-            cashAmt *= -1;
-        } else if (t._seller.equals(this)) {
-            resourceAmt *= -1;
-        } else {
-            throw new IllegalArgumentException("transaction doesn't involve pop");
+        if (!t.transactionDone()) {
+            int resourceAmt = t.amountBought();
+            double cashAmt = t.moneyAmount();
+            if (t._buyer.equals(this)) {
+                cashAmt *= -1;
+            } else if (t._seller.equals(this)) {
+                resourceAmt *= -1;
+            } else {
+                throw new IllegalArgumentException("transaction doesn't involve pop");
+            }
+            _inventory.add(t.resource(), resourceAmt);
+            _wallet.add(t.moneyType(), cashAmt);
         }
-        _inventory.add(t.resource(), resourceAmt);
-        _wallet.add(t.moneyType(), cashAmt);
+    }
+
+    /** Return how many of R this Pop wants in its inventory. */
+    private int desiredAmount(Resource r) {
+        return _desires.getOrDefault(r, 0);
+    }
+
+    /** The pop will try to buy and sell goods at its marketplace. */
+    void produceOffers() {
+        for (Resource r : Resource.values()) {
+            // TODO
+        }
     }
 }
