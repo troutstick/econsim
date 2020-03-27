@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static market.Resource.*;
 
 /** A class representing an agent in the market.
  *  Can buy and sell things. What a guy.
  *  */
-public class Pop {
+abstract class Pop {
     private final String _NAME;
 
     /*  The market this pop trades in. */
@@ -27,10 +28,12 @@ public class Pop {
     private List<Transaction> _transactions;
     private List<CurrencyTrade> _fxExchanges;
 
-    /* Shows how much the pop wants each resource. */
-    private Map<Resource, Integer> _desires;
+    /*  Shows how much the pop wants each resource.
+    *   Each Pop type has their own desired amount of resources.
+    *   */
+    private static Map<Resource, Integer> _desires;
 
-    public Pop(String name) {
+    Pop(String name) {
         _NAME = name;
         _marketplace = null;
         _isBankrupt = false; _bankruptcyThreshold = 5;
@@ -38,7 +41,6 @@ public class Pop {
         _wallet = new Wallet();
         _transactions = new ArrayList<>();
         _fxExchanges = new ArrayList<>();
-        _desires = new HashMap<>();
     }
 
     /** Complete the contents of transaction T. */
@@ -58,6 +60,10 @@ public class Pop {
         }
     }
 
+    static void changeDesire(Resource r, int desire) {
+        _desires.put(r, desire);
+    }
+
     /** Return how many of R this Pop wants in its inventory. */
     private int desiredAmount(Resource r) {
         return _desires.getOrDefault(r, 0);
@@ -68,5 +74,18 @@ public class Pop {
         for (Resource r : Resource.values()) {
             // TODO
         }
+    }
+}
+
+class Farmer extends Pop {
+
+    static {
+        Map<Resource, Integer> _desires = new HashMap<>();
+        _desires.put(Grain, 10);
+        _desires.put(Wood, 10);
+    }
+
+    Farmer(String name) {
+        super(name);
     }
 }
