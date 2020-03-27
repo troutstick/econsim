@@ -7,6 +7,7 @@ public class Transaction {
     private final Money _m;
     private final double _mAmount;
     final Pop _buyer, _seller;
+    private boolean _transactionDone;
 
     /** Trade RAMOUNT of R for MAMOUNT of M.
      *  Buyer gets resource, seller gets money. */
@@ -17,6 +18,7 @@ public class Transaction {
         _mAmount = mAmount;
         _buyer = buyer;
         _seller = seller;
+        _transactionDone = false;
     }
 
     /** Get the resource that was traded in the transaction. */
@@ -37,5 +39,13 @@ public class Transaction {
     /** How much money was used to buy in the transaction. */
     double moneyAmount() {
         return _mAmount;
+    }
+
+    boolean transactionDone() {
+        return _transactionDone;
+    }
+
+    void completeTransaction() {
+        _transactionDone = true;
     }
 }
