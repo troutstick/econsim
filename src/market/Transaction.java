@@ -6,10 +6,11 @@ public class Transaction {
     private final int _rAmount;
     private final Money _m;
     private final double _mAmount;
-    private final Pop _buyer, _seller;
+    final Pop _buyer, _seller;
 
-    /** Trade RAMOUNT of R for MAMOUNT of M. */
-    Transaction(Pop buyer, Pop seller, Resource r, int rAmount, Money m, double mAmount) {
+    /** Trade RAMOUNT of R for MAMOUNT of M.
+     *  Buyer gets resource, seller gets money. */
+    Transaction(Pop buyer, Resource r, int rAmount, Pop seller, Money m, double mAmount) {
         _r = r;
         _rAmount = rAmount;
         _m = m;
@@ -24,7 +25,7 @@ public class Transaction {
     }
 
     /** Get the type of currency in the transaction. */
-    Money money() {
+    Money moneyType() {
         return _m;
     }
 
