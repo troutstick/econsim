@@ -20,7 +20,7 @@ public class Wallet implements ResourceHolder<Money, Double> {
 
     /** Add AMOUNT of MONEY to the wallet. Note: Negative money is allowed (debt). */
     @Override
-    public boolean addResource(Money money, Double amount) {
+    public boolean add(Money money, Double amount) {
         _wallet.put(money, amount + peek(money));
         return true;
     }

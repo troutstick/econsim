@@ -7,7 +7,7 @@ interface ResourceHolder <R, N extends Number> {
     Number peek(R resource);
 
     /** Add AMOUNT to the value of RESOURCE. Returns true if operation is success. */
-    boolean addResource(R resource, N amount);
+    boolean add(R resource, N amount);
 
 
 }
