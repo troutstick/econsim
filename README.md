@@ -2,6 +2,8 @@
 
 I will try my best to create an economic simulator here. Inspiration from [this blogpost](https://www.gamasutra.com/blogs/LarsDoucet/20130603/193491/BazaarBot_An_OpenSource_Economics_Engine.php)!
 
+Currently working on rewriting the project in Java.
+
 ### Done:
 * A world with a marketplace populated by agents
   * Prices dynamically shift based on supply and demand
